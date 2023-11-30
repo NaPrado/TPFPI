@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 // el tipo de dato es el mismo tanto para stationsNYC como stationsMON, lo que cambia es como obtenemos esos datos;
-//hsxvnjsvjksjvksvklnlksndlk
+
 typedef struct dateHour
 {
     __u_short year;
