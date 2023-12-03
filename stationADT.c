@@ -1,6 +1,8 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <strings.h>
 #include <errno.h>
 //#include <stdbool.h>
 #include "stationADT.h"
@@ -74,87 +76,14 @@ struct stationsIdNode{ //arbol binario de busqueda basado en cada id de estacion
 
 typedef struct stationsIdNode * stationsIdBST;
 
-stationADT inicializerMONFormat(char const argv[]){
-    FILE * stationsMON = fopen( argv[1], "r");
-    if(stationsMON == NULL){
-        printf("No se pudo abrir el archivo\n");
-        exit (1);//deberia ser un return errno
-    }
-    readIndex(stationsMON);
-    char * s;
-    while (!feof(stationsMON)){
-        for (int i=0, c ; c=fgetc(stationsMON) != "\n" ; i++)
-            *(s+i)=c;
-        for (int i = 0; i < 4; i++){
-            char * token;
-            if (token=strtok(s,";") != NULL && i < 2){
-                switch (i){
-                    case 0:
-                        //leo el id
-                            token;
-                        break;
-                    case 1:
-                        //leo el name
-                            token;
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-    }
-    fclose(stationsMON);
-}
-
-stationADT inicializerNYCFormat(char const argv[]){
-    FILE * stationsNYC = fopen( argv[1], "r");
-    if(stationsNYC == NULL){
-        printf("No se pudo abrir el archivo\n");
-        exit (1);//deberia ser un return errno
-    }
-    readIndex(stationsNYC);
-    char * s;
-    while (!feof(stationsNYC)){
-        for (int i=0, c ; c=fgetc(stationsNYC) != "\n" ; i++)
-            *(s+i)=c;
-        for (int i = 0; i < 4; i++){
-            char * token;
-            if (token=strtok(s,";") != NULL && (i == 0 || i==3)){
-                switch (i){
-                    case 3:
-                        //leo el id
-                            token;
-                        break;
-                    case 0:
-                        //leo el name
-                            token;
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-    }
-    fclose(stationsNYC);
-}
-
 stationADT newStation(void){
     stationADT new = calloc(1,sizeof(struct stationCDT));
     return new;
 }
 
-static int nameCompare(char * name1, char *  name2){
-    int i,toReturn;
-    i=toReturn=0;
-    while(name1[i] != 0 || name2 != 0 && toReturn == 0){
-        toReturn = toupper(name1[i]) - toupper(name2[i]);
-    }
-    return toReturn;
-}
-
 static void addToTree(stationsIdBST root, size_t id, struct station * associatedStation){
     if (root == NULL){
-        root = calloc(sizeof(struct stationsIdNode));
+        root = calloc(1,sizeof(struct stationsIdNode));
         root->stationId = id;
         root->associatedStation = associatedStation;
     }else{
@@ -167,7 +96,7 @@ static void addToTree(stationsIdBST root, size_t id, struct station * associated
 }
 
 stationADT addStation(stationADT stationsList,char * stationName, stationsIdBST idBst, size_t stationId){
-    if(stationsList->stations == NULL || nameCompare(stationsList->stations->stationName,stationName) < 0){//si llegue al final o era vacia o tengo que añadir añado
+    if(stationsList->stations == NULL || strcasecmp(stationsList->stations->stationName,stationName) < 0){//si llegue al final o era vacia o tengo que añadir añado
         //incorporacion a la lista
         struct station * newNode = calloc(1,sizeof(struct station));
         newNode->stationName = stationName; //ver si anda
@@ -176,7 +105,7 @@ stationADT addStation(stationADT stationsList,char * stationName, stationsIdBST 
         addToTree(idBst,stationId,newNode);
         return newNode;
     }
-    if(nameCompare(stationsList->stations->stationName,stationName) == 0){
+    if(strcasecmp(stationsList->stations->stationName,stationName) == 0){
         //ya estaba???
         return stationsList;
     }
