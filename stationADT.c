@@ -4,19 +4,15 @@
 #include <stdbool.h>
 // el tipo de dato es el mismo tanto para stationsNYC como stationsMON, lo que cambia es como obtenemos esos datos;
 
-struct rentTime
+typedef struct rental * pRental ;
+struct rental //datos del archivo Bike se guardaran en formato de lista ordenada por stationIdStart 
 {
-    struct tm date;
-    __u_short station_id;
-};
-
-
-struct rental
-{
-    struct rentTime start;
-    struct rentTime end;
+    __u_short stationIdStart;
+    struct tm dateStart;
+    __u_short stationIdStartEnd;
+    struct tm dateStartEnd;
     bool is_member;
-    //ridable no nos interesa
+    pRental tail;
 };
 
 struct station
