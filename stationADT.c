@@ -77,15 +77,19 @@ char isValidRental(){
 
 }
 
+char * readIndex(char * stations){
+    strtok(stations,"\n");
+    return stations;
+}
+
 stationADT inicializerMONFormat(char const argv[]){
     char * stationsMON = fopen( argv[1], "r");
     if(stationsMON == NULL){
         printf("No se pudo abrir el archivo\n");
         exit (1);//deberia ser un return errno
     }
-    readIndex(stationsMON);
+    stationsMON=readIndex(stationsMON);
     char * s;
-    
     while (!feof(stationsMON)){
         for (int i=0, c ; c=fgetc(stationsMON) != "\n" ; i++)
             *(s+i)=c;
@@ -107,7 +111,7 @@ stationADT inicializerMONFormat(char const argv[]){
             }
         }
     }
-
+    fclose(stationsMON);
 }
 
 stationADT inicializerNYCFormat(char const argv[]){
