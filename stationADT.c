@@ -50,6 +50,7 @@ struct station //lista
     size_t amountRentalsByCasuals;  //contadores para q1
     size_t totalAmountRentals;      //contadores para q1
     pStation tailAlpha;
+    pStation tailcount;
 };
 
 struct stationCDT
