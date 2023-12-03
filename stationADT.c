@@ -115,7 +115,35 @@ stationADT inicializerMONFormat(char const argv[]){
 }
 
 stationADT inicializerNYCFormat(char const argv[]){
-
+        char * stationsNYC = fopen( argv[1], "r");
+    if(stationsNYC == NULL){
+        printf("No se pudo abrir el archivo\n");
+        exit (1);//deberia ser un return errno
+    }
+    stationsNYC=readIndex(stationsNYC);
+    char * s;
+    while (!feof(stationsNYC)){
+        for (int i=0, c ; c=fgetc(stationsNYC) != "\n" ; i++)
+            *(s+i)=c;
+        for (int i = 0; i < 4; i++){
+            char * token;
+            if (token=strtok(s,";") != NULL && (i == 0 || i==3)){
+                switch (i){
+                    case 3:
+                        //leo el id
+                            token;
+                        break;
+                    case 0:
+                        //leo el name
+                            token;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+    fclose(stationsNYC);
 }
 
 stationADT newStation(void){
