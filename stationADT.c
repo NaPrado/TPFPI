@@ -76,7 +76,11 @@ char isValidRental(){
 
 }
 
-stationADT inicializer(){
+stationADT inicializerMONFormat(char const argv[]){
+
+}
+
+stationADT inicializerNYCFormat(char const argv[]){
 
 }
 

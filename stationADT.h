@@ -2,7 +2,9 @@ typedef struct stationCDT * stationADT;
 
 char isValidRental();
 
-stationADT inicializer();
+stationADT inicializerNYCFormat(char const argv[]);
+
+stationADT inicializerMONFormat(char const argv[]);
 
 stationADT newStation(void);
 
