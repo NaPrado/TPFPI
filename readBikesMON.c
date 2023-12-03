@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <strings.h>
 #include <errno.h>
 #define BLOQUECHARS 10
 #include "stationADT.h"
@@ -9,18 +10,17 @@
 stationsIdBST tree=NULL;
 
 stationADT inicializerMONFormat(char const argv[],stationADT newStation){
-    errno = 0;
-    FILE * stationsMON = fopen( argv[1], "r");
+    FILE * bikesMON = fopen( argv[0], "r");
     if(errno != 0){
-        perror("Ocurrio un error mientrar se abria el archivo de las estaciones de Montreal\n");
+        perror("Ocurrio un error mientrar se abria el archivo de viajes realizados en Montreal\n");
         exit (1);
     }
-    readIndex(stationsMON);
+    readIndex(bikesMON);
     char * s=NULL;
-    while (!feof(stationsMON)){
+    while (!feof(bikesMON)){
         s=realloc(s,sizeof(char)*BLOQUECHARS);
         int i=0;
-        for (int j=0, c ; c=fgetc(stationsMON) != "\n" ; i++){
+        for (int j=0, c ; c=fgetc(bikesMON) != "\n" ; i++){
             if (i%BLOQUECHARS==0)
             {
                 j++;
@@ -31,17 +31,24 @@ stationADT inicializerMONFormat(char const argv[],stationADT newStation){
         s=realloc(s,sizeof(char)*(i+1));
         *(s+i)="\0";
         int id;
-        for (int q = 0; q < 2; q++){
+        for (int q = 0; q < 5; q++){
             char * token;
             if (token=strtok(s,";") != NULL && q < 2){
                 switch (q){
                     case 0:
-                        //leo el id
-                            id=atoi(token);
+                        //leo el start_date
                         break;
                     case 1:
-                        //leo el name
-                            newStation=addStation(newStation,token,tree,id);
+                        //leo el emplacement_pk_start
+                        break;
+                    case 2:
+                        //leo el end_date
+                        break;
+                    case 3:
+                        //leo el emplacement_pk_end
+                        break;
+                    case 4:
+                        //leo el is_member Si el usuario del alquiler es miembro del sistema de alquiler (0 si no es miembro, 1 si lo es)
                         break;
                     default:
                         break;
@@ -50,5 +57,5 @@ stationADT inicializerMONFormat(char const argv[],stationADT newStation){
         }
     }
     free(s);
-    fclose(stationsMON);
+    fclose(bikesMON);
 }

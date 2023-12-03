@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "*.c": "c",
-        "stationadt.h": "c"
+        "stationadt.h": "c",
+        "string.h": "c",
+        "strings.h": "c"
     }
 }

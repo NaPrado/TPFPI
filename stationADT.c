@@ -10,7 +10,7 @@
 
 /* 
     Info importante de cada archivo
-    Para bykes:
+    Para bikes:
         start_date;emplacement_pk_start;end_date;emplacement_pk_end;is_member
         2021-09-20 06:31:28;348;2021-09-20 07:02:22;332;1
     Para stations:

@@ -11,12 +11,12 @@ stationsIdBST tree=NULL;
 stationADT inicializerMONFormat(char const argv[],stationADT newStation){
     FILE * stationsNYC = fopen( argv[1], "r");
     if(errno != 0){
-        perror("Ocurrio un error mientrar se abria el archivo\n");
+        perror("Ocurrio un error mientrar se abria el archivo de las estaciones de Nueva York\n");
         exit (1);
     }
     readIndex(stationsNYC);
+    char * s=NULL;
     while (!feof(stationsNYC)){
-        char * s=NULL;
         s=realloc(s,sizeof(char)*BLOQUECHARS);
         int i=0;
         for (int j=0, c ; c=fgetc(stationsNYC) != "\n" ; i++){
@@ -27,6 +27,7 @@ stationADT inicializerMONFormat(char const argv[],stationADT newStation){
             }
             *(s+i)=c;
         }
+        s=realloc(s,sizeof(char)*(i+1));
         *(s+i)="\0";
         int id;
         for (int q = 0; q < 4; q+=3){
@@ -47,5 +48,6 @@ stationADT inicializerMONFormat(char const argv[],stationADT newStation){
             }
         }
     }
+    free(s);
     fclose(stationsNYC);
 }
