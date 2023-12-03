@@ -6,7 +6,9 @@
 #define BLOQUECHARS 10
 #include "stationADT.h"
 
-stationADT inicializerMONFormat(char const argv[]){
+stationsIdBST tree=NULL;
+
+stationADT inicializerMONFormat(char const argv[],stationADT newStation){
     FILE * stationsMON = fopen( argv[1], "r");
     if(stationsMON == NULL){
         printf("No se pudo abrir el archivo\n");
@@ -26,17 +28,18 @@ stationADT inicializerMONFormat(char const argv[]){
             *(s+i)=c;
         }
         *(s+i)="\0";
-        for (int q = 0; q < 2; i++){
+        int id;
+        for (int q = 0; q < 4; q+=3){
             char * token;
-            if (token=strtok(s,";") != NULL && i < 2){
-                switch (i){
+            if (token=strtok(s,";") != NULL && q < 2){
+                switch (q){
                     case 0:
-                        //leo el id
-                            token;
-                        break;
-                    case 1:
                         //leo el name
-                            token;
+                            id=atoi(token);
+                        break;
+                    case 3:
+                        //leo el id
+                            newStation=addStation(newStation,token,tree,id);
                         break;
                     default:
                         break;
