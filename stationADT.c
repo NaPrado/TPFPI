@@ -4,8 +4,16 @@
 #include <stdbool.h>
 // el tipo de dato es el mismo tanto para stationsNYC como stationsMON, lo que cambia es como obtenemos esos datos;
 
-// nashe
+/* info importante de cada archivo
+    Para bykes:
+        start_date;emplacement_pk_start;end_date;emplacement_pk_end;is_member
+        2021-09-20 06:31:28;348;2021-09-20 07:02:22;332;1
+    Para stations:
+        pk;name;latitude;longitude
+        327;Sanguinet / de Maisonneuve;45.513405;-73.562594
+*/
 
+typedef struct stationCDT * stationADT; 
 
 typedef struct rental * pRental ;
 struct rental //datos del archivo Bike se guardaran en formato de lista ordenada por stationIdStart 
@@ -26,7 +34,7 @@ struct station
     __u_short id;
 };
 
-struct CDT
+struct stationCDT
 {
     struct station * stations;
     struct rental * rents;
@@ -42,14 +50,23 @@ struct tm * assignTime(/*la funcion deberia recibir tiempo de alguna forma, no s
     return date;
 }
 
-struct q1{
-    /* data */
-};
+stationADT inicializer(){
 
-struct q2{
-    /* data */
-};
+}
 
-struct q3{
-    /* data */
-};
+stationADT newStation(void){
+
+}
+
+stationADT addStation(){
+
+}
+
+//quiza no haga falta 
+stationADT deleteStation(){
+
+}
+
+void freeStation(){
+
+}
