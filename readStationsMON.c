@@ -9,10 +9,11 @@
 stationsIdBST tree=NULL;
 
 stationADT inicializerMONFormat(char const argv[],stationADT newStation){
+    errno = 0;
     FILE * stationsMON = fopen( argv[1], "r");
-    if(stationsMON == NULL){
-        printf("No se pudo abrir el archivo\n");
-        exit (1);//deberia ser un return errno
+    if(errno != 0){
+        perror("Ocurrio un error mientrar se abria el archivo\n");
+        exit (1);
     }
     readIndex(stationsMON);
     while (!feof(stationsMON)){
