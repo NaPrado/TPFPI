@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <string.h>
+#include <errno.h>
 //#include <stdbool.h>
 #include "stationADT.h"
 // el tipo de dato es el mismo tanto para stationsNYC como stationsMON, lo que cambia es como obtenemos esos datos;
@@ -77,6 +78,35 @@ char isValidRental(){
 }
 
 stationADT inicializerMONFormat(char const argv[]){
+    char * stationsMON = fopen( argv[1], "r");
+    if(stationsMON == NULL){
+        printf("No se pudo abrir el archivo\n");
+        exit (1);//deberia ser un return errno
+    }
+    readIndex(stationsMON);
+    char * s;
+    
+    while (!feof(stationsMON)){
+        for (int i=0, c ; c=fgetc(stationsMON) != "\n" ; i++)
+            *(s+i)=c;
+        for (int i = 0; i < 4; i++){
+            char * token;
+            if (token=strtok(s,";") != NULL && i < 2){
+                switch (i){
+                    case 0:
+                        //leo el id
+                            token;
+                        break;
+                    case 1:
+                        //leo el name
+                            token;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
 
 }
 
