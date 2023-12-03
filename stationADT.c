@@ -1,36 +1,56 @@
 #include <stdio.h>
+#include <time.h>
+#include <string.h>
 #include <stdbool.h>
 // el tipo de dato es el mismo tanto para stationsNYC como stationsMON, lo que cambia es como obtenemos esos datos;
 
-typedef struct dateHour
+struct rentTime
 {
-    __u_short year;
-    __u_char month;
-    __u_char day;
-    __u_char hour;
-    __u_char min;
-    __u_char sec;
-}TDateHour;
-
-struct bike
-{
-    TDateHour start_date;
-    __u_short start_station_id;
-    TDateHour end_date;
-    __u_short end_station_id;
-    bool is_member;
-    bool rideable_type; //solo para NYC
+    struct tm date;
+    __u_short station_id;
 };
 
-struct stationADT
+
+struct rental
 {
-    /* Habria que sumar una lista o un arreglo de struct bike, teneiendo en cuenta que bikes se van a 
-    modificar de una estacion a otra y tenerlas ordenadas por id es favorable, y que 
-    no sabemos cuantas hay creo que lo conveniente es poner una lista */
+    struct rentTime start;
+    struct rentTime end;
+    bool is_member;
+    //ridable no nos interesa
+};
+
+struct station
+{
     char * stationName;
     long latitude;
     long longitude;
     __u_short id;
-    __u_char bikesAvailable;
 };
 
+struct CDT
+{
+    struct station * stations;
+    struct rental * rents;
+};
+
+
+//esta funcion debera se llamada para asignar los tiempos de entrada/salida en las structs correspondientes
+struct tm * assignTime(/*la funcion deberia recibir tiempo de alguna forma, no se si como char * con todos los datos y luego fragmentarlos, como varios char * en partes o como varios enteros*/)
+{
+    struct tm * date;
+    date->tm_hour/*  = hora */;
+    //el resto de los campos asignados
+    return date;
+}
+
+struct q1{
+    /* data */
+};
+
+struct q2{
+    /* data */
+};
+
+struct q3{
+    /* data */
+};
