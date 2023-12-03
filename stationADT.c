@@ -74,17 +74,6 @@ struct stationsIdNode{ //arbol binario de busqueda basado en cada id de estacion
 
 typedef struct stationsIdNode * stationsIdBST;
 
-
-char isValidRental(){
-
-}
-
-static void readIndex(FILE * stations){
-    while (fgetc(stations)!='\n'){
-    }
-    return;
-}
-
 stationADT inicializerMONFormat(char const argv[]){
     FILE * stationsMON = fopen( argv[1], "r");
     if(stationsMON == NULL){
@@ -150,7 +139,8 @@ stationADT inicializerNYCFormat(char const argv[]){
 }
 
 stationADT newStation(void){
-
+    stationADT new = calloc(1,sizeof(struct stationCDT));
+    return new;
 }
 
 static int nameCompare(char * name1, char *  name2){
@@ -194,13 +184,39 @@ stationADT addStation(stationADT stationsList,char * stationName, stationsIdBST 
     return stationsList;
 }
 
+static char isValidId(size_t id, stationsIdBST root){
+    if(root == NULL){
+        return 0;
+    }
+    else{
+        if(root->stationId == id){
+            return 1;
+        }
+        else{
+            if(id < root->stationId){
+                return isValidId(id,root->left);
+            }
+            else{
+                return isValidId(id,root->right);
+            }
+        }
+    }
+}
+
+static char isValidRental(size_t startStationId, size_t endStationId, stationsIdBST idBst){
+    return (isValidId(startStationId, idBst) && isValidId(endStationId, idBst));
+}
+
+pRental addRental(){
+
+}
 
 //quiza no haga falta 
 stationADT deleteStation(){
 
 }
 
-void freeStation(){
+void freeAssets(){
 
 }
 
