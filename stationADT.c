@@ -79,18 +79,19 @@ char isValidRental(){
 
 }
 
-char * readIndex(char * stations){
-    strtok(stations,"\n");
-    return stations;
+void readIndex(FILE * stations){
+    while (fgetc(stations)!='\n'){
+    }
+    return;
 }
 
 stationADT inicializerMONFormat(char const argv[]){
-    char * stationsMON = fopen( argv[1], "r");
+    FILE * stationsMON = fopen( argv[1], "r");
     if(stationsMON == NULL){
         printf("No se pudo abrir el archivo\n");
         exit (1);//deberia ser un return errno
     }
-    stationsMON=readIndex(stationsMON);
+    readIndex(stationsMON);
     char * s;
     while (!feof(stationsMON)){
         for (int i=0, c ; c=fgetc(stationsMON) != "\n" ; i++)
@@ -117,12 +118,12 @@ stationADT inicializerMONFormat(char const argv[]){
 }
 
 stationADT inicializerNYCFormat(char const argv[]){
-        char * stationsNYC = fopen( argv[1], "r");
+    FILE * stationsNYC = fopen( argv[1], "r");
     if(stationsNYC == NULL){
         printf("No se pudo abrir el archivo\n");
         exit (1);//deberia ser un return errno
     }
-    stationsNYC=readIndex(stationsNYC);
+    readIndex(stationsNYC);
     char * s;
     while (!feof(stationsNYC)){
         for (int i=0, c ; c=fgetc(stationsNYC) != "\n" ; i++)
@@ -205,24 +206,7 @@ void freeStation(){
 
 int main(int argc, char const *argv[])
 {
-    //lectura station
-    char * arch1 = fopen( argv[1], "r");
-    if(arch1 == NULL){
-        exit (1);
-    }
-    //loop hasta \n
-    int fgetc(arch1);
-    char * s;
-    strtok(s,";");
 
-
-    fclose(arch1);
-    //lectura bikes
-    char * arch2 = fopen( argv[0], "r");
-    if(arch1 == NULL){
-        exit (1);
-    }
-    fclose(arch1);
     return 0;
 }
 
