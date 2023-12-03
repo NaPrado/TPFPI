@@ -4,6 +4,9 @@
 #include <stdbool.h>
 // el tipo de dato es el mismo tanto para stationsNYC como stationsMON, lo que cambia es como obtenemos esos datos;
 
+// nashe
+
+
 typedef struct rental * pRental ;
 struct rental //datos del archivo Bike se guardaran en formato de lista ordenada por stationIdStart 
 {
