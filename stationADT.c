@@ -65,12 +65,14 @@ struct tm * assignTime(/*la funcion deberia recibir tiempo de alguna forma, no s
     return date;
 }
 
-struct stationsIdBST{ //arbol binario de busqueda basado en cada id de estacion
+struct stationsIdNode{ //arbol binario de busqueda basado en cada id de estacion
     size_t stationId;
     struct station * associatedStation;
     struct stationsIdBST * left;
     struct stationsIdBST * right;
 };
+
+typedef struct stationsIdNode * stationsIdBST;
 
 
 char isValidRental(){
@@ -150,9 +152,47 @@ stationADT newStation(void){
 
 }
 
-stationADT addStation(){
-
+static int nameCompare(char * name1, char *  name2){
+    int i,toReturn;
+    i=toReturn=0;
+    while(name1[i] != 0 || name2 != 0 && toReturn == 0){
+        toReturn = toupper(name1[i]) - toupper(name2[i]);
+    }
+    return toReturn;
 }
+
+static void addToTree(stationsIdBST root, size_t id, struct station * associatedStation){
+    if (root == NULL){
+        root = calloc(sizeof(struct stationsIdNode));
+        root->stationId = id;
+        root->associatedStation = associatedStation;
+    }else{
+        if (id <= root->stationId){
+            addToTree(root->left, id, associatedStation);
+        }else{
+            addToTree(root->right, id, associatedStation);
+        }
+    }
+}
+
+stationADT addStation(stationADT stationsList,char * stationName, stationsIdBST idBst, size_t stationId){
+    if(stationsList->stations == NULL || nameCompare(stationsList->stations->stationName,stationName) < 0){//si llegue al final o era vacia o tengo que añadir añado
+        //incorporacion a la lista
+        struct station * newNode = calloc(1,sizeof(struct station));
+        newNode->stationName = stationName; //ver si anda
+        newNode->tailAlpha = stationsList->stations;
+        //incorporacion a el BST
+        addToTree(idBst,stationId,newNode);
+        return newNode;
+    }
+    if(nameCompare(stationsList->stations->stationName,stationName) == 0){
+        //ya estaba???
+        return stationsList;
+    }
+    stationsList->stations = addStation(stationsList->stations, stationName, idBst, stationId);
+    return stationsList;
+}
+
 
 //quiza no haga falta 
 stationADT deleteStation(){
