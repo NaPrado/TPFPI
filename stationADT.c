@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <string.h>
-#include <stdbool.h>
+//#include <stdbool.h>
 #include "stationADT.h"
 // el tipo de dato es el mismo tanto para stationsNYC como stationsMON, lo que cambia es como obtenemos esos datos;
 
@@ -27,28 +27,31 @@ struct rental //datos del archivo Bike se guardaran en formato de lista ordenada
 {
     // size_t stationIdStart; redundante con la lista de estaciones
     struct tm dateStart;
-    size_t stationIdStartEnd;
-    struct tm dateStartEnd;
-    bool is_member;
+    char * stationNameEnd;
+    struct tm dateStart;
+    struct tm dateEnd;
+    //bool is_member;
     pRental tail;
 };
 
-struct station
+typedef struct station * pStation ;
+
+struct station //lista
 {
     char * stationName;
     // long double latitude; ver si es necesario
     // long double longitude;
     // size_t id;
-    pRental oldestRental;
-    size_t amountRentalsByMembers;
-    size_t amountRentalsByCasuals;
-    size_t totalAmountRentals;
-    struct station * tail;
+    pRental oldestRental; //lista
+    size_t amountRentalsByMembers;  //contadores para q1
+    size_t amountRentalsByCasuals;  //contadores para q1
+    size_t totalAmountRentals;      //contadores para q1
+    pStation tailAlpha;
 };
 
 struct stationCDT
 {
-    struct station * stations; //lista estaciones orden alfabetico (osea puntero a primer nodo)
+    struct station * stations; //lista estaciones orden alfabetico (osea digamos puntero a primer nodo)
 };
 
 
@@ -93,3 +96,27 @@ stationADT deleteStation(){
 void freeStation(){
 
 }
+
+int main(int argc, char const *argv[])
+{
+    //lectura station
+    char * arch1 = fopen( argv[1], "r");
+    if(arch1 == NULL){
+        exit (1);
+    }
+    //loop hasta \n
+    int fgetc(arch1);
+    char * s;
+    strtok(s,";");
+
+
+    fclose(arch1);
+    //lectura bikes
+    char * arch2 = fopen( argv[0], "r");
+    if(arch1 == NULL){
+        exit (1);
+    }
+    fclose(arch1);
+    return 0;
+}
+
