@@ -22,7 +22,7 @@ struct station
     long longitude;
     __u_short id;
 };
-
+fd
 struct CDT
 {
     struct station * stations;
