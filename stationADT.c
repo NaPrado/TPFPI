@@ -79,7 +79,7 @@ char isValidRental(){
 
 }
 
-void readIndex(FILE * stations){
+static void readIndex(FILE * stations){
     while (fgetc(stations)!='\n'){
     }
     return;
@@ -209,4 +209,3 @@ int main(int argc, char const *argv[])
 
     return 0;
 }
-
