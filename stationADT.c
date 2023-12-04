@@ -6,6 +6,9 @@
 #include <errno.h>
 //#include <stdbool.h>
 #include "stationADT.h"
+
+#define BLOQUECHARS 10
+
 // el tipo de dato es el mismo tanto para stationsNYC como stationsMON, lo que cambia es como obtenemos esos datos;
 
 /* 
@@ -19,7 +22,7 @@
 */
 
 // ---------------------------------IDEA-----------------------------------------
-// proponemos que el cdt contenga dos cosas primero una lista de estaciones
+// proponemos que el cdt contenga dos cosas primero dos listas de estaciones (alfabetico, cantidad viajes iniciados)
 // segundo un arbol de ids
 // esto con el proposito de que primero se cargan las informaciones de las estaciones existentes del archivo stations
 // a su vez se iran cargando en paralelo las ids existentes de cada estacion a un arbol binario de busqueda 
@@ -179,4 +182,93 @@ stationADT deleteStation(){
 
 void freeAssets(){
 
+}
+stationADT inicializerNYCFormat(char const argv[],stationADT newStation){
+    stationsIdBST tree=NULL;
+    FILE * stationsNYC = fopen( argv[1], "r");
+    if(errno != 0){
+        perror("Ocurrio un error mientrar se abria el archivo de las estaciones de Nueva York\n");
+        exit (1); //poner codigo de erno
+    }
+    readIndex(stationsNYC);
+    char * s=NULL;
+    while (!feof(stationsNYC)){
+        s=realloc(s,sizeof(char)*BLOQUECHARS);
+        int i=0;
+        for (int j=0, c ; c=fgetc(stationsNYC) != "\n" ; i++){
+            if (i%BLOQUECHARS==0)
+            {
+                j++;
+                s=realloc(s,sizeof(char)*BLOQUECHARS*j);
+            }
+            *(s+i)=c;
+        }
+        s=realloc(s,sizeof(char)*(i+1));
+        *(s+i)="\0";
+        int id;
+        for (int q = 0; q < 4; q+=3){
+            char * token;
+            if (token=strtok(s,";") != NULL && q < 2){
+                switch (q){
+                    case 0:
+                        //leo el name
+                            id=atoi(token);
+                        break;
+                    case 3:
+                        //leo el id
+                            newStation->firstAlpha = addStation(newStation->firstAlpha,token,tree,id);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+    free(s);
+    fclose(stationsNYC);
+}
+stationADT inicializerMONFormat(char const argv[],stationADT newStation){
+    stationsIdBST tree=NULL;
+    errno = 0;
+    FILE * stationsMON = fopen( argv[1], "r");
+    if(errno != 0){
+        perror("Ocurrio un error mientrar se abria el archivo de las estaciones de Montreal\n");
+        exit (1);
+    }
+    readIndex(stationsMON);
+    char * s=NULL;
+    while (!feof(stationsMON)){
+        s=realloc(s,sizeof(char)*BLOQUECHARS);
+        int i=0;
+        for (int j=0, c ; c=fgetc(stationsMON) != "\n" ; i++){
+            if (i%BLOQUECHARS==0)
+            {
+                j++;
+                s=realloc(s,sizeof(char)*BLOQUECHARS*j);
+            }
+            *(s+i)=c;
+        }
+        s=realloc(s,sizeof(char)*(i+1));
+        *(s+i)="\0";
+        int id;
+        for (int q = 0; q < 2; q++){
+            char * token;
+            if (token=strtok(s,";") != NULL && q < 2){
+                switch (q){
+                    case 0:
+                        //leo el id
+                            id=atoi(token);
+                        break;
+                    case 1:
+                        //leo el name
+                            newStation->firstAlpha = addStation(newStation->firstAlpha,token,tree,id);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+    free(s);
+    fclose(stationsMON);
 }
