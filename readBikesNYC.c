@@ -30,6 +30,7 @@ stationADT inicializerMONFormat(char const argv[],stationADT newStation){
         }
         s=realloc(s,sizeof(char)*(i+1));
         *(s+i)="\0";
+        int idStart, idEnd;
         for (int q = 0; q < 6; q++){
             char * token;
             if (token=strtok(s,";") != NULL && q < 2){
@@ -40,6 +41,7 @@ stationADT inicializerMONFormat(char const argv[],stationADT newStation){
                         break;
                     case 1:
                         //leo el start_station_id
+                        idStart=atoi(token);
                         break;
                     case 2:
                         //leo el ended_at
@@ -47,6 +49,7 @@ stationADT inicializerMONFormat(char const argv[],stationADT newStation){
                         break;
                     case 3:
                         //leo el end_station_id
+                        idEnd=atoi(token);
                         break;
                     case 5:
                         //leo el member_casual: Si el usuario del alquiler es miembro del sistema de alquiler (cadena de caracteres, “casual” si no es miembro, “member” si lo es)

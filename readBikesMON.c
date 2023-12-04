@@ -32,6 +32,7 @@ stationADT inicializerMONFormat(char const argv[],stationADT newStation){
         }
         s=realloc(s,sizeof(char)*(i+1));
         *(s+i)="\0";
+        int idStart, idEnd;
         for (int q = 0; q < 5; q++){
             char * token;
             if (token=strtok(s,";") != NULL && q < 2){
@@ -42,6 +43,7 @@ stationADT inicializerMONFormat(char const argv[],stationADT newStation){
                         break;
                     case 1:
                         //leo el emplacement_pk_start
+                        idStart=atoi(token);
                         break;
                     case 2:
                         //leo el end_date
@@ -49,6 +51,7 @@ stationADT inicializerMONFormat(char const argv[],stationADT newStation){
                         break;
                     case 3:
                         //leo el emplacement_pk_end
+                        atoi(token);
                         break;
                     case 4:
                         //leo el is_member Si el usuario del alquiler es miembro del sistema de alquiler (0 si no es miembro, 1 si lo es)
