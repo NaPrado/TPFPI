@@ -49,14 +49,15 @@ struct station //lista
     size_t amountRentalsByCasuals;  //contadores para q1
     size_t totalAmountRentals;      //contadores para q1
     pStation tailAlpha;
-    pStation tailcount;             //util para q1
+    pStation tailCount;             //util para q1
 };
 
 struct stationCDT
 {
-    struct station * stations;  //lista estaciones orden alfabetico (osea digamos puntero a primer nodo)
+    pStation firstAlpha;//lista estaciones orden alfabetico (osea digamos puntero a primer nodo)
+    pStation firstCount;//lista oredenada segun cantidad de viajes iniciados en esa estacion
 };                              //osea digamos soy nahue, es necesario esto ??????????????????????????????????????????????????????????????????????????????????????????
-
+                                //si nahue pq hay q saber cual es el primer elem, de hecho, necesitas un firstCount aca para tu nueva forma de ordenar 
 
 //esta funcion debera ser llamada para asignar los tiempos de entrada/salida en las structs correspondientes
 struct tm * assignDate(char * date ) //yyyy-MM-dd HH:mm:ss
@@ -126,22 +127,22 @@ static void addToTree(stationsIdBST root, size_t id, struct station * associated
     }
 }
 
-stationADT addStation(stationADT stationsList,char * stationName, stationsIdBST idBst, size_t stationId){
-    if(stationsList->stations == NULL || strcasecmp(stationsList->stations->stationName,stationName) < 0){//si llegue al final o era vacia o tengo que añadir añado
+pStation addStation(pStation alphaList,char * stationName, stationsIdBST idBst, size_t stationId){
+    if(alphaList == NULL || strcasecmp(alphaList->stationName,stationName) < 0){//si llegue al final o era vacia o tengo que añadir añado
         //incorporacion a la lista
-        struct station * newNode = calloc(1,sizeof(struct station));
+        pStation newNode = calloc(1,sizeof(struct station));
         newNode->stationName = stationName; //ver si anda
-        newNode->tailAlpha = stationsList->stations;
+        newNode->tailAlpha = alphaList;
         //incorporacion a el BST
         addToTree(idBst,stationId,newNode);
         return newNode;
     }
-    if(strcasecmp(stationsList->stations->stationName,stationName) == 0){
+    if(strcasecmp(alphaList->stationName,stationName) == 0){
         //ya estaba???
-        return stationsList;
+        return alphaList;
     }
-    stationsList->stations = addStation(stationsList->stations, stationName, idBst, stationId);
-    return stationsList;
+    alphaList->tailAlpha = addStation(alphaList->tailAlpha, stationName, idBst, stationId);
+    return alphaList;
 }
 
 static char isValidId(size_t id, stationsIdBST root){
@@ -164,10 +165,10 @@ static char isValidId(size_t id, stationsIdBST root){
 }
 
 static char isValidRental(size_t startStationId, size_t endStationId, stationsIdBST idBst){
-    return (isValidId(startStationId, idBst) && isValidId(endStationId, idBst));
+    return (startStationId != endStationId && (isValidId(startStationId, idBst) && isValidId(endStationId, idBst)));
 }
 
-pRental addRental(){
+pRental addRental(, char * startDate, char * endDate, char isMember){
 
 }
 
@@ -178,10 +179,4 @@ stationADT deleteStation(){
 
 void freeAssets(){
 
-}
-
-int main(int argc, char const *argv[])
-{
-
-    return 0;
 }
