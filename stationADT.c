@@ -4,6 +4,7 @@
 #include <string.h>
 #include <strings.h>
 #include <errno.h>
+#include <math.h>
 //#include <stdbool.h>
 #include "stationADT.h"
 
@@ -73,6 +74,15 @@ struct stationsIdNode{ //arbol binario de busqueda basado en cada id de estacion
 
 typedef struct stationsIdNode * stationsIdBST;
 
+
+
+char * intTostr(int num){
+    char * str = malloc((int)((ceil(log10(num))+1)*sizeof(char)));
+    sprintf(str, "%d", num);
+    return str;
+}
+
+
 //esta funcion debera ser llamada para asignar los tiempos de entrada/salida en las structs correspondientes
 struct tm * assignDate(char * date ) //yyyy-MM-dd HH:mm:ss
 {
@@ -138,7 +148,7 @@ pStation addStation(pStation alphaList,char * stationName, stationsIdBST idBst, 
     if(alphaList == NULL || strcasecmp(alphaList->stationName,stationName) < 0){//si llegue al final o era vacia o tengo que añadir añado
         //incorporacion a la lista
         pStation newNode = calloc(1,sizeof(struct station));
-        newNode->stationName = stationName; //ver si anda
+        newNode->stationName = stationName; //ver si anda. no anda hay q hacer malloc y strcpy
         newNode->tailAlpha = alphaList;
         //incorporacion a el BST
         addToTree(idBst,stationId,newNode);
@@ -237,18 +247,18 @@ stationADT inicializerNYCFormat(char const argv[],stationADT newStation){
         }
         s=realloc(s,sizeof(char)*(i+1));
         *(s+i)="\0";
-        int id;
-        for (int q = 0; q < 4; q+=3){
-            char * token;
-            if (token=strtok(s,";") != NULL && q < 2){
+        char * name;
+        for (int q = 0; q < 4; q++){
+            char * token=strtok(s,";");
+            if (token != NULL && q!=1 && q!=2){
                 switch (q){
                     case 0:
                         //leo el name
-                            id=atoi(token);
+                            strcpy(name,token);
                         break;
                     case 3:
                         //leo el id
-                            newStation->firstAlpha = addStation(newStation->firstAlpha,token,tree,id);
+                            newStation->firstAlpha = addStation(newStation->firstAlpha,name,tree,atoi(token));
                         break;
                     default:
                         break;
@@ -284,9 +294,9 @@ stationADT inicializerMONFormat(char const argv[],stationADT newStation){
         s=realloc(s,sizeof(char)*(i+1));
         *(s+i)="\0";
         int id;
-        for (int q = 0; q < 2; q++){
-            char * token;
-            if (token=strtok(s,";") != NULL && q < 2){
+        for (int q = 0; q < 4; q++){
+            char * token=strtok(s,";");
+            if (token != NULL && q < 2){
                 switch (q){
                     case 0:
                         //leo el id
