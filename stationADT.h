@@ -14,3 +14,6 @@ stationADT addStation(stationADT stationsList,char * stationName, stationsIdBST 
 stationADT deleteStation();
 
 void freeStation();
+
+//te retorna un puntero a struct con los datos de fechas guardados, luego podemos usar mktime()
+struct tm * assignDate(char * date ); //yyyy-MM-dd HH:mm:ss

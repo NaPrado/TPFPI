@@ -29,10 +29,9 @@ typedef struct rental * pRental ;
 struct rental //datos del archivo Bike se guardaran en formato de lista ordenada por stationIdStart 
 {
     // size_t stationIdStart; redundante con la lista de estaciones
-    struct tm dateStart;
+    struct tm * dateStart;
     char * stationNameEnd;
-    struct tm dateStart;
-    struct tm dateEnd;
+    struct tm * dateEnd;
     //bool is_member;
     pRental tail;
 };
@@ -55,17 +54,48 @@ struct station //lista
 
 struct stationCDT
 {
-    struct station * stations; //lista estaciones orden alfabetico (osea digamos puntero a primer nodo)
-};
+    struct station * stations;  //lista estaciones orden alfabetico (osea digamos puntero a primer nodo)
+};                              //osea digamos soy nahue, es necesario esto ??????????????????????????????????????????????????????????????????????????????????????????
 
 
-//esta funcion debera se llamada para asignar los tiempos de entrada/salida en las structs correspondientes
-struct tm * assignTime(/*la funcion deberia recibir tiempo de alguna forma, no se si como char * con todos los datos y luego fragmentarlos, como varios char * en partes o como varios enteros*/)
+//esta funcion debera ser llamada para asignar los tiempos de entrada/salida en las structs correspondientes
+struct tm * assignDate(char * date ) //yyyy-MM-dd HH:mm:ss
 {
-    struct tm * date;
-    date->tm_hour/*  = hora */;
-    //el resto de los campos asignados
-    return date;
+    struct tm * ret = calloc(1,sizeof(struct tm));//es necesario que sea dinamico??? creo q no
+        for (int q = 0; q < 6; q++){
+            char * token;
+            if (token=strtok(date,"- :") != NULL && q < 2){
+                switch (q){
+                    case 0:
+                        //leo el yyyy
+                        ret->tm_year=atoi(token); // No me queda claro si hay que restar 1900 al año, revisar la documentacion 
+                        break;
+                    case 1:
+                        //leo el MM
+                        ret->tm_mon=atoi(token);
+                        break;
+                    case 2:
+                        //leo el dd
+                        ret->tm_mday=atoi(token);
+                        break;
+                    case 3:
+                        //leo el HH
+                        ret->tm_hour=atoi(token);
+                        break;
+                    case 4:
+                        //leo el mm
+                        ret->tm_min=atoi(token);
+                        break;
+                    case 5:
+                        //leo el ss
+                        ret->tm_sec=atoi(token);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    return ret;
 }
 
 struct stationsIdNode{ //arbol binario de busqueda basado en cada id de estacion
