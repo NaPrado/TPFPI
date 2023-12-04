@@ -8,6 +8,8 @@
 #include "stationADT.h"
 
 #define BLOQUECHARS 10
+#define MEMBER 1
+#define CASUAL 0
 
 // el tipo de dato es el mismo tanto para stationsNYC como stationsMON, lo que cambia es como obtenemos esos datos;
 
@@ -148,31 +150,58 @@ pStation addStation(pStation alphaList,char * stationName, stationsIdBST idBst, 
     return alphaList;
 }
 
-static char isValidId(size_t id, stationsIdBST root){
+static char isValidId(size_t id, stationsIdBST root, pStation * correctStation){
     if(root == NULL){
         return 0;
     }
     else{
         if(root->stationId == id){
+            *correctStation = root->associatedStation;
             return 1;
         }
         else{
             if(id < root->stationId){
-                return isValidId(id,root->left);
+                return isValidId(id,root->left, correctStation);
             }
             else{
-                return isValidId(id,root->right);
+                return isValidId(id,root->right, correctStation);
             }
         }
     }
 }
 
-static char isValidRental(size_t startStationId, size_t endStationId, stationsIdBST idBst){
-    return (startStationId != endStationId && (isValidId(startStationId, idBst) && isValidId(endStationId, idBst)));
+static char isValidRental(size_t startStationId, size_t endStationId, stationsIdBST idBst, pStation * startStation, pStation * endStation){
+    return (startStationId != endStationId && (isValidId(startStationId, idBst, startStation) && isValidId(endStationId, idBst, endStation)));;
 }
 
-pRental addRental(, char * startDate, char * endDate, char isMember){
+pRental addRentalRec(pRental rentalList, struct tm * startDate, struct tm * endDate, char * endStationName){
+    double cmp;
+    if(rentalList == NULL || (cmp = difftime(mktime(startDate),mktime(rentalList->dateStart))) < 0){
+        pRental newRental = malloc(sizeof(struct rental));
+        newRental->dateEnd=endDate;
+        newRental->dateStart=startDate;
+        newRental->stationNameEnd=endStationName;
+        newRental->tail=rentalList;
+        return newRental;
+    }
+    rentalList->tail = addRentalRec(rentalList->tail, startDate, endDate, endStationName);
+    return rentalList;
+}
 
+void addRental(stationsIdBST idBST, struct tm * startDate,size_t startId,struct tm * endDate, size_t endId, char association){
+    pStation startStation, endStation;
+    if(!isValidRental(startId, endId, idBST, &startStation, &endStation)){
+        return;
+    }
+    startStation->totalAmountRentals += 1;
+    char * endStationName = endStation->stationName; //ver si anda (quilombitos de strings)
+    startStation->oldestRental = addRentalRec(startStation->oldestRental, startDate, endDate, endStationName);
+    if(association == MEMBER){
+        startStation->amountRentalsByMembers += 1;
+    }
+    if(association == CASUAL){
+        startStation->amountRentalsByCasuals += 1;
+    }
 }
 
 //quiza no haga falta 
@@ -185,7 +214,7 @@ void freeAssets(){
 }
 stationADT inicializerNYCFormat(char const argv[],stationADT newStation){
     stationsIdBST tree=NULL;
-    FILE * stationsNYC = fopen( argv[1], "r");
+    FILE * stationsNYC = fopen( argv[1], "rt");
     if(errno != 0){
         perror("Ocurrio un error mientrar se abria el archivo de las estaciones de Nueva York\n");
         exit (1); //poner codigo de erno
@@ -230,7 +259,7 @@ stationADT inicializerNYCFormat(char const argv[],stationADT newStation){
 stationADT inicializerMONFormat(char const argv[],stationADT newStation){
     stationsIdBST tree=NULL;
     errno = 0;
-    FILE * stationsMON = fopen( argv[1], "r");
+    FILE * stationsMON = fopen( argv[1], "rt");
     if(errno != 0){
         perror("Ocurrio un error mientrar se abria el archivo de las estaciones de Montreal\n");
         exit (1);
