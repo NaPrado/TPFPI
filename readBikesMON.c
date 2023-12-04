@@ -51,7 +51,7 @@ stationADT inicializerMONFormat(char const argv[],stationADT newStation){
                         break;
                     case 3:
                         //leo el emplacement_pk_end
-                        atoi(token);
+                        idEnd=atoi(token);
                         break;
                     case 4:
                         //leo el is_member Si el usuario del alquiler es miembro del sistema de alquiler (0 si no es miembro, 1 si lo es)
