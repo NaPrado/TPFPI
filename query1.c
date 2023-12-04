@@ -40,7 +40,7 @@ static void writeQ1Rec(pStation stations, htmlTable tablaQ1, FILE * csvQ1){
     //hay que pasar a str los ints
     addHTMLRow(tablaQ1,stations->stationName,stations->amountRentalsByMembers,stations->amountRentalsByCasuals,stations->totalAmountRentals);
     fputs("",csvQ1);
-    writeQ1Rec(stations->tailCount,tablaQ1,csvQ1)
+    writeQ1Rec(stations->tailCount,tablaQ1,csvQ1);
 }
 
 static void writeQ1(struct stationCDT * stations){
