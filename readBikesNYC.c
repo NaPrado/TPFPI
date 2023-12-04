@@ -9,12 +9,13 @@
 
 stationsIdBST tree=NULL;
 
-stationADT inicializerBikesMONFormat(char const argv[],stationADT newStation){
+stationADT inicializerBikesNYCFormat(char const argv[],stationADT newStation){
     FILE * bikesNYC = fopen( argv[0], "r");
     if(errno != 0){
         perror("Ocurrio un error mientrar se abria el archivo de viajes realizados en Nueva York\n");
         exit (1);
     }
+
     readIndex(bikesNYC);
     char * s=NULL;
     while (!feof(bikesNYC)){

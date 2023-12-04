@@ -1,6 +1,7 @@
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <time.h>
 #include "stationADT.h"
 #include "libreria HTML/htmlTable.h"
 typedef struct rental * pRental ;
@@ -40,12 +41,20 @@ struct stationCDT
 
 
 
-pRental checkIfCircular(pRental rent, char * currentStationName){
+static pRental checkIfCircular(pRental rent, char * currentStationName){
     if (strcmp(currentStationName,rent->stationNameEnd)==0){
         return rent;
     }
     checkIfCircular(rent->tail,currentStationName);
 }
+
+static char * dateToStr(struct tm * date){
+    char * day = intToStr(date->tm_mday);
+    char * month = intToStr(date->tm_mon);
+    char * year = intToStr(date->tm_hour);
+    char * mins = intToStr(date->tm_min);
+}
+
 
 
 static void writeQ2Rec(pStation stations, htmlTable tablaQ2, FILE * csvQ2,char col){
@@ -53,10 +62,13 @@ static void writeQ2Rec(pStation stations, htmlTable tablaQ2, FILE * csvQ2,char c
         return;
     pRental rent = checkIfCircular(stations->oldestRental,stations->stationName);
     //hay que pasar los ints a str
-    addHTMLRow(tablaQ2,strcat(stations->stationName,col),strcat(rent->stationNameEnd,col),strcat(rent->dateStart,'\n'));
-    fputs(strcat(stations->stationName,col),csvQ2);
-    fputs(strcat(rent->stationNameEnd,col),csvQ2);
-    fputs(strcat(rent->dateStart,'\n'),csvQ2);
+    //"DD/MM/YYYY HH:mm"
+    char * col1=strcpy(col1,strcat(stations->stationName,col)); 
+    char * col2=strcpy(col2,strcat(rent->stationNameEnd,col));
+    char * col3=strcpy(col3,strcat(dateToStr(rent->dateEnd),'\n'));
+    addHTMLRow(tablaQ2,col1,col2,col3);
+    char * completeLine=strcpy(strcpy(col1,col2),col3);
+    fputs(completeLine,csvQ2);
     writeQ2Rec(stations->tailAlpha,tablaQ2,csvQ2,col);
     return;
 }

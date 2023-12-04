@@ -76,7 +76,7 @@ typedef struct stationsIdNode * stationsIdBST;
 
 
 
-char * intTostr(int num){
+char * intToStr(int num){
     char * str = malloc((int)((ceil(log10(num))+1)*sizeof(char)));
     sprintf(str, "%d", num);
     return str;
@@ -148,7 +148,7 @@ pStation addStation(pStation alphaList,char * stationName, stationsIdBST idBst, 
     if(alphaList == NULL || strcasecmp(alphaList->stationName,stationName) < 0){//si llegue al final o era vacia o tengo que añadir añado
         //incorporacion a la lista
         pStation newNode = calloc(1,sizeof(struct station));
-        newNode->stationName = stationName; //ver si anda. no anda hay q hacer malloc y strcpy
+        newNode->stationName = stationName; //ver si anda.
         newNode->tailAlpha = alphaList;
         //incorporacion a el BST
         addToTree(idBst,stationId,newNode);
