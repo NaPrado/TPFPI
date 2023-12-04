@@ -1,5 +1,6 @@
 typedef struct stationCDT * stationADT; 
 typedef struct stationsIdNode *stationsIdBST;
+typedef struct station * pStation ;
 char isValidRental();
 
 stationADT inicializerNYCFormat(char const argv[],stationADT newStation);
@@ -8,7 +9,7 @@ stationADT inicializerMONFormat(char const argv[],stationADT newStation);
 
 stationADT newStation(void);
 
-stationADT addStation(stationADT stationsList,char * stationName, stationsIdBST idBst, size_t stationId);
+pStation addStation(pStation alphaList,char * stationName, stationsIdBST idBst, size_t stationId);
 
 //quiza no haga falta 
 stationADT deleteStation();

@@ -11,7 +11,7 @@
 
 stationsIdBST tree=NULL;
 
-stationADT inicializerMONFormat(char const argv[],stationADT newStation){
+stationADT inicializerBikesMONFormat(char const argv[],stationADT newStation){
     FILE * bikesMON = fopen( argv[0], "r");
     if(errno != 0){
         perror("Ocurrio un error mientrar se abria el archivo de viajes realizados en Montreal\n");
@@ -22,7 +22,7 @@ stationADT inicializerMONFormat(char const argv[],stationADT newStation){
     while (!feof(bikesMON)){
         s=realloc(s,sizeof(char)*BLOQUECHARS);
         int i=0;
-        for (int j=0, c ; c=fgetc(bikesMON) != "\n" ; i++){
+        for (int j=0, c ; c=fgetc(bikesMON) != '\n' ; i++){
             if (i%BLOQUECHARS==0)
             {
                 j++;

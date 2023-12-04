@@ -64,13 +64,22 @@ struct stationCDT
 };                              //osea digamos soy nahue, es necesario esto ??????????????????????????????????????????????????????????????????????????????????????????
                                 //si nahue pq hay q saber cual es el primer elem, de hecho, necesitas un firstCount aca para tu nueva forma de ordenar 
 
+struct stationsIdNode{ //arbol binario de busqueda basado en cada id de estacion
+    size_t stationId;
+    struct station * associatedStation;
+    struct stationsIdBST * left;
+    struct stationsIdBST * right;
+};
+
+typedef struct stationsIdNode * stationsIdBST;
+
 //esta funcion debera ser llamada para asignar los tiempos de entrada/salida en las structs correspondientes
 struct tm * assignDate(char * date ) //yyyy-MM-dd HH:mm:ss
 {
     struct tm * ret = calloc(1,sizeof(struct tm));//es necesario que sea dinamico??? creo q no
         for (int q = 0; q < 6; q++){
             char * token;
-            if (token=strtok(date,"- :") != NULL && q < 2){
+            if (token=strtok(date,"- :") != NULL){
                 switch (q){
                     case 0:
                         //leo el yyyy
@@ -104,14 +113,7 @@ struct tm * assignDate(char * date ) //yyyy-MM-dd HH:mm:ss
     return ret;
 }
 
-struct stationsIdNode{ //arbol binario de busqueda basado en cada id de estacion
-    size_t stationId;
-    struct station * associatedStation;
-    struct stationsIdBST * left;
-    struct stationsIdBST * right;
-};
 
-typedef struct stationsIdNode * stationsIdBST;
 
 stationADT newStation(void){
     stationADT new = calloc(1,sizeof(struct stationCDT));
@@ -212,6 +214,7 @@ stationADT deleteStation(){
 void freeAssets(){
 
 }
+
 stationADT inicializerNYCFormat(char const argv[],stationADT newStation){
     stationsIdBST tree=NULL;
     FILE * stationsNYC = fopen( argv[1], "rt");
@@ -224,7 +227,7 @@ stationADT inicializerNYCFormat(char const argv[],stationADT newStation){
     while (!feof(stationsNYC)){
         s=realloc(s,sizeof(char)*BLOQUECHARS);
         int i=0;
-        for (int j=0, c ; c=fgetc(stationsNYC) != "\n" ; i++){
+        for (int j=0, c ; c=fgetc(stationsNYC) != '\n' ; i++){
             if (i%BLOQUECHARS==0)
             {
                 j++;
@@ -256,11 +259,12 @@ stationADT inicializerNYCFormat(char const argv[],stationADT newStation){
     free(s);
     fclose(stationsNYC);
 }
+
 stationADT inicializerMONFormat(char const argv[],stationADT newStation){
     stationsIdBST tree=NULL;
     errno = 0;
     FILE * stationsMON = fopen( argv[1], "rt");
-    if(errno != 0){
+    if(errno != 0 || stationsMON==NULL){
         perror("Ocurrio un error mientrar se abria el archivo de las estaciones de Montreal\n");
         exit (1);
     }
@@ -269,7 +273,7 @@ stationADT inicializerMONFormat(char const argv[],stationADT newStation){
     while (!feof(stationsMON)){
         s=realloc(s,sizeof(char)*BLOQUECHARS);
         int i=0;
-        for (int j=0, c ; c=fgetc(stationsMON) != "\n" ; i++){
+        for (int j=0, c ; c=fgetc(stationsMON) != '\n' ; i++){
             if (i%BLOQUECHARS==0)
             {
                 j++;
