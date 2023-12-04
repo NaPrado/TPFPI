@@ -72,11 +72,11 @@ struct tm * assignDate(char * date ) //yyyy-MM-dd HH:mm:ss
                 switch (q){
                     case 0:
                         //leo el yyyy
-                        ret->tm_year=atoi(token); // No me queda claro si hay que restar 1900 al año, revisar la documentacion 
+                        ret->tm_year=atoi(token)-1900;
                         break;
                     case 1:
                         //leo el MM
-                        ret->tm_mon=atoi(token);
+                        ret->tm_mon=atoi(token)-1;
                         break;
                     case 2:
                         //leo el dd
