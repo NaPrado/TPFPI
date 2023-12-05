@@ -10,7 +10,7 @@
 
 #define BLOQUECHARS 10
 #define MEMBER 1
-#define CASUAL 0
+#define CASUAL 0 
 
 // el tipo de dato es el mismo tanto para stationsNYC como stationsMON, lo que cambia es como obtenemos esos datos;
 

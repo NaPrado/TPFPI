@@ -34,7 +34,7 @@ stationADT inicializerBikesNYCFormat(char const argv[],stationADT newStation){
         int idStart, idEnd;
         for (int q = 0; q < 6; q++){
             char * token;
-            if (token=strtok(s,";") != NULL && q < 2){
+            if (token=strtok(s,";") != NULL){
                 switch (q){
                     case 0:
                         //leo el started_at

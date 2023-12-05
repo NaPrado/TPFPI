@@ -1,8 +1,11 @@
 {
     "files.associations": {
+        "*.excalidraw": "json",
+        "*.excalidrawlib": "json",
         "*.c": "c",
         "stationadt.h": "c",
         "string.h": "c",
-        "strings.h": "c"
+        "strings.h": "c",
+        "math.h": "c"
     }
 }
