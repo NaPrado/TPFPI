@@ -37,6 +37,25 @@ struct stationCDT
     pStation firstCount;//lista oredenada segun cantidad de viajes iniciados en esa estacion
 };                              //osea digamos soy nahue, es necesario esto ??????????????????????????????????????????????????????????????????????????????????????????
 
+static pStation link(pStation station,pStation listCount){
+    if(listCount == NULL || station->totalAmountRentals <= listCount->totalAmountRentals){
+        station->tailCount = listCount;
+        listCount->tailCount = station;
+        return listCount;
+    }
+    listCount->tailCount = link(station,listCount->tailCount);
+    return listCount;
+}
+
+static void orderByCount(stationADT stations){
+    pStation aux = stations->firstAlpha;
+    while (aux != NULL){
+        stations->firstCount = link(aux,stations->firstCount);
+        aux = aux->tailAlpha;
+    }
+    return;
+}
+
 static void writeQ1Rec(pStation stations, htmlTable tablaQ1, FILE * csvQ1){
     if (stations==NULL)
         return;
@@ -51,7 +70,7 @@ static void writeQ1Rec(pStation stations, htmlTable tablaQ1, FILE * csvQ1){
     return;
 }
 
-static void writeQ1(struct stationCDT * stations){
+static void writeQ1(stationADT stations){
     errno = 0;
     FILE * csvQ1 = fopen("query1.csv","wt");
     if(errno != 0 || csvQ1==NULL){
@@ -66,8 +85,9 @@ static void writeQ1(struct stationCDT * stations){
 }
 
 
-q1(struct stationCDT * stations){
-    ordenarPorCantidadDeViajes(stations);//no implementada
+void query1(stationADT stations){
+    orderByCount(stations);//no implementada
     writeQ1(stations);//carga tanto html como csv
 };
+
 
