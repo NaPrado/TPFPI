@@ -5,9 +5,9 @@ typedef struct stationsIdNode *stationsIdBST;
 typedef struct station * pStation ;
 char isValidRental();
 
-stationADT inicializerNYCFormat(char const argv[],stationADT newStation);
+void inicializerNYCFormat(char const *argv[],stationADT newStation);
 
-stationADT inicializerMONFormat(char const argv[],stationADT newStation);
+void inicializerMONFormat(char const *argv[],stationADT newStation);
 
 stationADT newStation(void);
 

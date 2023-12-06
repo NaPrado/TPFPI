@@ -211,15 +211,15 @@ void freeAssets(){
 
 }
 
-stationADT inicializerNYCFormat(char const argv[],stationADT newStation){
-    stationsIdBST tree=NULL;
+void inicializerNYCFormat(char const * argv[],stationADT newStation){
+    //stationsIdBST tree=NULL;
     errno = 0;
     FILE * stationsNYC = fopen( argv[2], "rt");
     if(errno != 0 || stationsNYC==NULL){
         perror("Ocurrio un error mientrar se abria el archivo de las estaciones de Montreal\n");
         exit (1);
     }
-   char * s = NULL;
+    char * s = NULL;
     size_t longitud = 0;
     // Leer líneas desde el archivo
     errno=0;
@@ -227,42 +227,44 @@ stationADT inicializerNYCFormat(char const argv[],stationADT newStation){
         perror("Ocurrio un error leyendo la primer linea del archivo de estaciones de Montreall\n");
         exit (1);
     }
-    printf("%s",s);
-    free(s);
     while (!feof(stationsNYC)){
-        s=NULL;
         getline(&s, &longitud, stationsNYC);
+        char * name;
         int id;
-        char * name=NULL;
-                // Formato: station_name;latitude;longitude;id
-        int result = sscanf(s, "%s;%*[^;];%*[^;];%d;\n",name,&id);
-
-        if (result == 2) {
-            // La cadena se analizó correctamente, los valores están en las variables correspondientes.
-            printf("%d;\n%s;\n",id, name);
-        } 
-        else if (result==0)
-        {
-            //goddddd
+        char * token=strtok(s,";");
+        for (int q = 0; q < 4; q++) {
+            if (token != NULL) {
+                switch (q) {
+                    case 0:
+                        // leo el name
+                        // newStation->firstAlpha = addStation(newStation->firstAlpha, token, tree, id);
+                        name=token;
+                        break;
+                    case 3:
+                        // leo el id
+                        id = atoi(token);
+                        printf("%d;%s\n", id, name);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            token = strtok(NULL, ";");  // Mueve la llamada a strtok fuera del switch
         }
-        else {
-            // Hubo un problema al analizar la cadena
-            printf("Error al analizar la cadena\n");
-        }
-        free(s);
     }
+    
     fclose(stationsNYC);
 }
 
-stationADT inicializerMONFormat(char const argv[],stationADT newStation){
-    stationsIdBST tree=NULL;
+void inicializerMONFormat(char const * argv[],stationADT newStation){
+    //stationsIdBST tree=NULL;
     errno = 0;
     FILE * stationsMON = fopen( argv[2], "rt");
     if(errno != 0 || stationsMON==NULL){
         perror("Ocurrio un error mientrar se abria el archivo de las estaciones de Montreal\n");
         exit (1);
     }
-   char * s = NULL;
+    char * s = NULL;
     size_t longitud = 0;
     // Leer líneas desde el archivo
     errno=0;
@@ -270,30 +272,30 @@ stationADT inicializerMONFormat(char const argv[],stationADT newStation){
         perror("Ocurrio un error leyendo la primer linea del archivo de estaciones de Montreall\n");
         exit (1);
     }
-    printf("%s",s);
-    free(s);
     while (!feof(stationsMON)){
-        s=NULL;
         getline(&s, &longitud, stationsMON);
         int id;
-        char * name=NULL;
-                // Formato: pk;name;latitude;longitude
-        int result = sscanf(s, "%d;%s;%*[^\n]\n",&id,name);
-
-        if (result == 2) {
-            // La cadena se analizó correctamente, los valores están en las variables correspondientes.
-            printf("%d;\n%s;\n",id, name);
-        } 
-        else if (result==0)
-        {
-            //goddddd
+        char * token=strtok(s,";");
+        for (int q = 0; q < 4; q++) {
+            if (token != NULL && q < 2) {
+                switch (q) {
+                    case 0:
+                        // leo el id
+                        id = atoi(token);
+                        break;
+                    case 1:
+                        // leo el name
+                        // newStation->firstAlpha = addStation(newStation->firstAlpha, token, tree, id);
+                        printf("%d;%s\n", id, token);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            token = strtok(NULL, ";");  // Mueve la llamada a strtok fuera del switch
         }
-        else {
-            // Hubo un problema al analizar la cadena
-            printf("Error al analizar la cadena\n");
-        }
-        free(s);
     }
+    
     fclose(stationsMON);
 }
 
@@ -366,7 +368,7 @@ void inicializerBikesMONFormat(char const *argv[],stationADT newStation){
 } */
 
 
-void inicializerBikesMONFormat(char const *argv[],stationADT newStation){
+void inicializerBikesNYCFormat(char const *argv[],stationADT newStation){
     errno=0;
     FILE * bikesNYC = fopen( argv[1], "rt");
     if(errno != 0 && bikesNYC==NULL){
