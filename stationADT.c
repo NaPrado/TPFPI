@@ -213,99 +213,93 @@ void freeAssets(){
 
 stationADT inicializerNYCFormat(char const argv[],stationADT newStation){
     stationsIdBST tree=NULL;
-    FILE * stationsNYC = fopen( argv[1], "rt");
-    if(errno != 0){
-        perror("Ocurrio un error mientrar se abria el archivo de las estaciones de Nueva York\n");
-        exit (1); //poner codigo de erno
+    errno = 0;
+    FILE * stationsNYC = fopen( argv[2], "rt");
+    if(errno != 0 || stationsNYC==NULL){
+        perror("Ocurrio un error mientrar se abria el archivo de las estaciones de Montreal\n");
+        exit (1);
     }
-    readIndex(stationsNYC);
-    char * s=NULL;
-    while (!feof(stationsNYC)){
-        s=realloc(s,sizeof(char)*BLOQUECHARS);
-        int i=0;
-        for (int j=0, c ; c=fgetc(stationsNYC) != '\n' ; i++){
-            if (i%BLOQUECHARS==0)
-            {
-                j++;
-                s=realloc(s,sizeof(char)*BLOQUECHARS*j);
-            }
-            *(s+i)=c;
-        }
-        s=realloc(s,sizeof(char)*(i+1));
-        *(s+i)="\0";
-        char * name;
-        for (int q = 0; q < 4; q++){
-            char * token=strtok(s,";");
-            if (token != NULL && q!=1 && q!=2){
-                switch (q){
-                    case 0:
-                        //leo el name
-                            strcpy(name,token);
-                        break;
-                    case 3:
-                        //leo el id
-                            newStation->firstAlpha = addStation(newStation->firstAlpha,name,tree,atoi(token));
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
+   char * s = NULL;
+    size_t longitud = 0;
+    // Leer líneas desde el archivo
+    errno=0;
+    if(getline(&s, &longitud, stationsNYC)==-1){
+        perror("Ocurrio un error leyendo la primer linea del archivo de estaciones de Montreall\n");
+        exit (1);
     }
+    printf("%s",s);
     free(s);
+    while (!feof(stationsNYC)){
+        s=NULL;
+        getline(&s, &longitud, stationsNYC);
+        int id;
+        char * name=NULL;
+                // Formato: station_name;latitude;longitude;id
+        int result = sscanf(s, "%s;%*[^;];%*[^;];%d;\n",name,&id);
+
+        if (result == 2) {
+            // La cadena se analizó correctamente, los valores están en las variables correspondientes.
+            printf("%d;\n%s;\n",id, name);
+        } 
+        else if (result==0)
+        {
+            //goddddd
+        }
+        else {
+            // Hubo un problema al analizar la cadena
+            printf("Error al analizar la cadena\n");
+        }
+        free(s);
+    }
     fclose(stationsNYC);
 }
 
 stationADT inicializerMONFormat(char const argv[],stationADT newStation){
     stationsIdBST tree=NULL;
     errno = 0;
-    FILE * stationsMON = fopen( argv[1], "rt");
+    FILE * stationsMON = fopen( argv[2], "rt");
     if(errno != 0 || stationsMON==NULL){
         perror("Ocurrio un error mientrar se abria el archivo de las estaciones de Montreal\n");
         exit (1);
     }
-    readIndex(stationsMON);
-    char * s=NULL;
-    while (!feof(stationsMON)){
-        s=realloc(s,sizeof(char)*BLOQUECHARS);
-        int i=0;
-        for (int j=0, c ; c=fgetc(stationsMON) != '\n' ; i++){
-            if (i%BLOQUECHARS==0)
-            {
-                j++;
-                s=realloc(s,sizeof(char)*BLOQUECHARS*j);
-            }
-            *(s+i)=c;
-        }
-        s=realloc(s,sizeof(char)*(i+1));
-        *(s+i)="\0";
-        int id;
-        for (int q = 0; q < 4; q++){
-            char * token=strtok(s,";");
-            if (token != NULL && q < 2){
-                switch (q){
-                    case 0:
-                        //leo el id
-                            id=atoi(token);
-                        break;
-                    case 1:
-                        //leo el name
-                            newStation->firstAlpha = addStation(newStation->firstAlpha,token,tree,id);
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
+   char * s = NULL;
+    size_t longitud = 0;
+    // Leer líneas desde el archivo
+    errno=0;
+    if(getline(&s, &longitud, stationsMON)==-1){
+        perror("Ocurrio un error leyendo la primer linea del archivo de estaciones de Montreall\n");
+        exit (1);
     }
+    printf("%s",s);
     free(s);
+    while (!feof(stationsMON)){
+        s=NULL;
+        getline(&s, &longitud, stationsMON);
+        int id;
+        char * name=NULL;
+                // Formato: pk;name;latitude;longitude
+        int result = sscanf(s, "%d;%s;%*[^\n]\n",&id,name);
+
+        if (result == 2) {
+            // La cadena se analizó correctamente, los valores están en las variables correspondientes.
+            printf("%d;\n%s;\n",id, name);
+        } 
+        else if (result==0)
+        {
+            //goddddd
+        }
+        else {
+            // Hubo un problema al analizar la cadena
+            printf("Error al analizar la cadena\n");
+        }
+        free(s);
+    }
     fclose(stationsMON);
 }
 
 
 void inicializerBikesMONFormat(char const *argv[],stationADT newStation){
     errno=0;
-    printf("%s",argv[1]);
     FILE * bikesMON = fopen( argv[1], "rt");
     if(errno != 0 && bikesMON==NULL){
         perror("Ocurrio un error mientrar se abria el archivo de viajes realizados en Montreal\n");
@@ -321,19 +315,10 @@ void inicializerBikesMONFormat(char const *argv[],stationADT newStation){
         exit (1);
     }
     printf("%s",s);
-/*     char * format="start_date;emplacement_pk_start;end_date;emplacement_pk_end;is_member\n";
-    if (strcmp(s,format)!=0){
-        printf("Formato incorrecto, su formato es:\n%s\n y el correcto es:\n%s",s,format);
-        exit(1);
-    } */
     free(s);
     while (!feof(bikesMON)){
-        s=NULL;
-        /* if( */getline(&s, &longitud, bikesMON);/* ==-1){ */
-/*         errno=0;
-        perror("Ocurrio un error leyendo alguna la linea del archivo de viajes realizados en Montreal\n");
-        exit (1);
-        } */
+    s=NULL;
+    getline(&s, &longitud, bikesMON);
     struct tm startDate, endDate;
     int idStart, idEnd, isMember;
             // Formato: yyyy-mm-dd HH:mm:ss;idStart;yyyy-mm-dd HH:mm:ss;idEnd;isMember
