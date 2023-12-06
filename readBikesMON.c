@@ -46,7 +46,7 @@ __ssize_t getline(char **lineptr, size_t *n, FILE *stream) {
 
 
 
-/* stationADT */ void inicializerBikesMONFormat(char const *argv[],stationADT newStation){
+void inicializerBikesMONFormat(char const *argv[],stationADT newStation){
     errno=0;
     printf("%s",argv[1]);
     FILE * bikesMON = fopen( argv[1], "rt");
