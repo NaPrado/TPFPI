@@ -42,7 +42,7 @@ struct rental //datos del archivo Bike se guardaran en formato de lista ordenada
     pRental tail;
 };
 
-typedef struct station * pStation ;
+/* typedef struct station * pStation ; */
 
 struct station //lista
 {
@@ -72,18 +72,18 @@ struct stationsIdNode{ //arbol binario de busqueda basado en cada id de estacion
     struct stationsIdBST * right;
 };
 
-typedef struct stationsIdNode * stationsIdBST;
+/* typedef struct stationsIdNode * stationsIdBST; */
 
 
 
-char * intToStr(int num){
+/* char * intToStr(int num){
     char * str = malloc((int)((ceil(log10(num))+1)*sizeof(char)));
     sprintf(str, "%d", num);
     return str;
 }
+ */
 
-
-//esta funcion debera ser llamada para asignar los tiempos de entrada/salida en las structs correspondientes
+/* //esta funcion debera ser llamada para asignar los tiempos de entrada/salida en las structs correspondientes
 struct tm * assignDate(char * date ) //yyyy-MM-dd HH:mm:ss
 {
     struct tm * ret = calloc(1,sizeof(struct tm));//es necesario que sea dinamico??? creo q no
@@ -122,9 +122,9 @@ struct tm * assignDate(char * date ) //yyyy-MM-dd HH:mm:ss
         }
     return ret;
 }
+ */
 
-
-
+/* 
 stationADT newStation(void){
     stationADT new = calloc(1,sizeof(struct stationCDT));
     return new;
@@ -223,9 +223,9 @@ stationADT deleteStation(){
 
 void freeAssets(){
 
-}
+} */
 
-stationADT inicializerNYCFormat(char const argv[],stationADT newStation){
+/* stationADT inicializerNYCFormat(char const argv[],stationADT newStation){
     stationsIdBST tree=NULL;
     FILE * stationsNYC = fopen( argv[1], "rt");
     if(errno != 0){
@@ -314,4 +314,4 @@ stationADT inicializerMONFormat(char const argv[],stationADT newStation){
     }
     free(s);
     fclose(stationsMON);
-}
+} */

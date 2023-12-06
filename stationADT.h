@@ -1,3 +1,5 @@
+#ifndef __stationADT_h_
+#define __stationADT_h_
 typedef struct stationCDT * stationADT; 
 typedef struct stationsIdNode *stationsIdBST;
 typedef struct station * pStation ;
@@ -20,3 +22,4 @@ void freeStation();
 struct tm * assignDate(char * date ); //yyyy-MM-dd HH:mm:ss
 
 char * intToStr(int num);
+#endif
