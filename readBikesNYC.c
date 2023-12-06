@@ -50,7 +50,6 @@ __ssize_t getline(char **lineptr, size_t *n, FILE *stream) {
 
 /* stationADT */ void inicializerBikesMONFormat(char const *argv[]/* ,stationADT newStation */){
     errno=0;
-    printf("%s",argv[1]);
     FILE * bikesNYC = fopen( argv[1], "rt");
     if(errno != 0 && bikesNYC==NULL){
         perror("Ocurrio un error mientrar se abria el archivo de viajes realizados en Montreal\n");
@@ -72,26 +71,26 @@ __ssize_t getline(char **lineptr, size_t *n, FILE *stream) {
     } */
     free(s);
     while (!feof(bikesNYC)){
-            s=NULL;
-            /* if( */getline(&s, &longitud, bikesNYC);/* ==-1){ */
-/*             errno=0;
-            perror("Ocurrio un error leyendo alguna la linea del archivo de viajes realizados en Montreal\n");
-            exit (1);
-            } */
+        s=NULL;
+        getline(&s, &longitud, bikesNYC);
         struct tm startDate, endDate;
         int idStart, idEnd;
-        signed char isMember;
+   /*      char * z=NULL; */
+        char isMember;
                 // Formato: yyyy-mm-dd HH:mm:ss;idStart;yyyy-mm-dd HH:mm:ss;idEnd;rideable_type;member_casual
-    int result = sscanf(s, "%d-%d-%d %d:%d:%d;%d;%d-%d-%d %d:%d:%d;%d;;%hhd",
-                        &startDate.tm_year, &startDate.tm_mon, &startDate.tm_mday,
-                        &startDate.tm_hour, &startDate.tm_min, &startDate.tm_sec,
-                        &idStart,
-                        &endDate.tm_year, &endDate.tm_mon, &endDate.tm_mday,
-                        &endDate.tm_hour, &endDate.tm_min, &endDate.tm_sec,
-                        &idEnd,
-                        &isMember);
-        isMember=isMember=='c';
-        if (result == 16) {
+        int result = sscanf(s, "%d-%d-%d %d:%d:%d.000000;%d;%d-%d-%d %d:%d:%d.000000;%d;%*[^;];%c\n",
+                            &startDate.tm_year, &startDate.tm_mon, &startDate.tm_mday, &startDate.tm_hour, &startDate.tm_min, &startDate.tm_sec,
+                            &idStart,
+                            &endDate.tm_year, &endDate.tm_mon, &endDate.tm_mday,&endDate.tm_hour, &endDate.tm_min, &endDate.tm_sec,
+                            &idEnd,&isMember);
+        
+/*         strtok(z,";");
+        result += sscanf(z," %c\n",&isMember);
+        strtok(z,"\n");
+        free(z);
+ */
+        printf("%d",result);
+        if (result == 15) {
             // La cadena se analizó correctamente, los valores están en las variables correspondientes.
             printf("%d-%02d-%02d %02d:%02d:%02d;\t", startDate.tm_year, startDate.tm_mon, startDate.tm_mday,
                    startDate.tm_hour, startDate.tm_min, startDate.tm_sec);
@@ -99,7 +98,7 @@ __ssize_t getline(char **lineptr, size_t *n, FILE *stream) {
             printf("%d-%02d-%02d %02d:%02d:%02d;\t", endDate.tm_year, endDate.tm_mon, endDate.tm_mday,
                    endDate.tm_hour, endDate.tm_min, endDate.tm_sec);
             printf("%d;\t", idEnd);
-            printf("%d;\n", isMember);
+            printf("%d;\n", isMember=='c');
         } else {
             // Hubo un problema al analizar la cadena
             printf("Error al analizar la cadena\n");
