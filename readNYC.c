@@ -65,24 +65,19 @@ static void inicializerBikesNYCFormat(char const *argv[],stationADT newStation,s
     while (!feof(bikesNYC)){
         s=NULL;
         getline(&s, &longitud, bikesNYC);
-        struct tm startDate, endDate;
+        struct tm * startDate=calloc(1,sizeof(struct tm));
+        struct tm * endDate=calloc(1,sizeof(struct tm));
         int idStart, idEnd;
         char isMember;
                 // Formato: yyyy-mm-dd HH:mm:ss;idStart;yyyy-mm-dd HH:mm:ss;idEnd;rideable_type;member_casual
         int result = sscanf(s, "%d-%d-%d %d:%d:%d.000000;%d;%d-%d-%d %d:%d:%d.000000;%d;%*[^;];%c\n",
-                            &startDate.tm_year, &startDate.tm_mon, &startDate.tm_mday, &startDate.tm_hour, &startDate.tm_min, &startDate.tm_sec,
+                            &startDate->tm_year, &startDate->tm_mon, &startDate->tm_mday, &startDate->tm_hour, &startDate->tm_min, &startDate->tm_sec,
                             &idStart,
-                            &endDate.tm_year, &endDate.tm_mon, &endDate.tm_mday,&endDate.tm_hour, &endDate.tm_min, &endDate.tm_sec,
+                            &endDate->tm_year, &endDate->tm_mon, &endDate->tm_mday,&endDate->tm_hour, &endDate->tm_min, &endDate->tm_sec,
                             &idEnd,&isMember);
         if (result == 15) {
             // La cadena se analizó correctamente, los valores están en las variables correspondientes.
-            printf("%d-%02d-%02d %02d:%02d:%02d;\t", startDate.tm_year, startDate.tm_mon, startDate.tm_mday,
-                   startDate.tm_hour, startDate.tm_min, startDate.tm_sec);
-            printf("%d;\t", idStart);
-            printf("%d-%02d-%02d %02d:%02d:%02d;\t", endDate.tm_year, endDate.tm_mon, endDate.tm_mday,
-                   endDate.tm_hour, endDate.tm_min, endDate.tm_sec);
-            printf("%d;\t", idEnd);
-            printf("%d;\n", isMember=='m');
+            addRental(tree,startDate,idStart,endDate,idEnd,isMember);
         } else {
             // Hubo un problema al analizar la cadena
             printf("Error al analizar la cadena\n");
