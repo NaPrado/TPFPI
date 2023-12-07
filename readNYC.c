@@ -46,26 +46,6 @@ static __ssize_t getline(char **lineptr, size_t *n, FILE *stream) {
     return pos; // Devolver el número de caracteres leídos
 }
 
-static char* copiarCadena(const char *origen) {
-    // Obtener la longitud de la cadena de origen
-    size_t longitud = strlen(origen);
-
-    // Asignar memoria dinámica para la cadena de destino
-    char *destino = (char*)malloc((longitud + 1) * sizeof(char));
-
-    // Verificar si la asignación de memoria fue exitosa
-    if (destino == NULL) {
-        perror("Error al asignar memoria");
-        exit(EXIT_FAILURE);
-    }
-
-    // Copiar la cadena de origen a la zona de memoria dinámica
-    strcpy(destino, origen);
-
-    // Devolver la dirección de la zona de memoria asignada
-    return destino;
-}
-
 static void inicializerBikesNYCFormat(char const *argv[],stationADT newStation,stationsIdBST tree){
     errno=0;
     FILE * bikesNYC = fopen( argv[1], "rt");

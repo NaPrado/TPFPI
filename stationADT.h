@@ -5,6 +5,8 @@ typedef struct stationsIdNode *stationsIdBST;
 typedef struct station * pStation ;
 char isValidRental();
 
+__ssize_t getline(char **lineptr, size_t *n, FILE *stream);
+
 stationADT newStation(void);
 
 void addStation(stationADT station,char * stationName, stationsIdBST idBst, size_t stationId);
