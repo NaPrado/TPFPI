@@ -82,6 +82,11 @@ static void inicializerBikesMONFormat(char const *argv[],stationADT newStation,s
                         &endDate->tm_hour, &endDate->tm_min, &endDate->tm_sec,
                         &idEnd,
                         &isMember);
+        //seteo de fechas
+        startDate->tm_year=startDate->tm_year-1900;
+        startDate->tm_mon=startDate->tm_mon-1, 
+        endDate->tm_year=endDate->tm_year-1900;
+        endDate->tm_mon=startDate->tm_mon-1;
 
         if (result == 15) // La cadena se analizó correctamente, los valores están en las variables correspondientes.
             addRental(tree,startDate,idStart,endDate,idEnd,isMember);

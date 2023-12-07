@@ -5,6 +5,7 @@
 #include <strings.h>
 #include <errno.h>
 #include <math.h>
+#include "libreria HTML/htmlTable.h"  
 //#include <stdbool.h>
 #include "stationADT.h"
 
@@ -60,10 +61,9 @@ struct station //lista
 
 struct stationCDT
 {
-    pStation firstAlpha;//lista estaciones orden alfabetico (osea digamos puntero a primer nodo)
+    pStation firstAlpha;//lista estaciones orden alfabetico (puntero a primer nodo)
     pStation firstCount;//lista oredenada segun cantidad de viajes iniciados en esa estacion
-};                              //osea digamos soy nahue, es necesario esto ??????????????????????????????????????????????????????????????????????????????????????????
-                                //si nahue pq hay q saber cual es el primer elem, de hecho, necesitas un firstCount aca para tu nueva forma de ordenar 
+};                              
 
 struct stationsIdNode{ //arbol binario de busqueda basado en cada id de estacion
     size_t stationId;
@@ -74,7 +74,7 @@ struct stationsIdNode{ //arbol binario de busqueda basado en cada id de estacion
 
 typedef struct stationsIdNode * stationsIdBST;
 
-static char* copiarCadena(const char *origen) {
+char* copiarCadena(const char *origen) {
     // Obtener la longitud de la cadena de origen
     size_t longitud = strlen(origen);
 
@@ -159,7 +159,7 @@ static char isValidId(size_t id, stationsIdBST root, pStation * correctStation){
 }
 
 static char isValidRental(size_t startStationId, size_t endStationId, stationsIdBST idBst, pStation * startStation, pStation * endStation){
-    return (startStationId != endStationId && (isValidId(startStationId, idBst, startStation) && isValidId(endStationId, idBst, endStation)));;
+    return (isValidId(startStationId, idBst, startStation) && isValidId(endStationId, idBst, endStation));;
 }
 
 static pRental addRentalRec(pRental rentalList, struct tm * startDate, struct tm * endDate, char * endStationName){
@@ -226,3 +226,119 @@ void freeAssets(){
     return 0;
 }
  */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+static pStation link(pStation station,pStation listCount){
+    if(listCount == NULL || station->totalAmountRentals <= listCount->totalAmountRentals){
+        station->tailCount = listCount;
+        listCount->tailCount = station;
+        return listCount;
+    }
+    listCount->tailCount = link(station,listCount->tailCount);
+    return listCount;
+}
+
+static void orderByCount(stationADT stations){
+    pStation aux = stations->firstAlpha;
+    while (aux != NULL){
+        stations->firstCount = link(aux,stations->firstCount);
+        aux = aux->tailAlpha;
+    }
+    return;
+}
+
+static void writeQ1Rec(pStation stations, htmlTable tablaQ1, FILE * csvQ1){
+    if (stations==NULL)
+        return;
+    addHTMLRow(tablaQ1,stations->stationName,stations->amountRentalsByMembers,stations->amountRentalsByCasuals,stations->totalAmountRentals);
+    fprintf(csvQ1,"%s;%d;%d;%d\n",stations->stationName,stations->amountRentalsByMembers,stations->amountRentalsByCasuals,stations->totalAmountRentals);
+    writeQ1Rec(stations->tailCount,tablaQ1,csvQ1);
+    return;
+}
+
+static void writeQ1(stationADT stations){
+    errno = 0;
+    FILE * csvQ1 = fopen("query1.csv","wt");
+    if(errno != 0 || csvQ1==NULL){
+        perror("Ocurrio un error mientrar se creaba el archivo \"query1.csv\" \n");
+        exit (1);
+    }
+    fprintf(csvQ1,"bikeStation;memberTrips;casualTrips;allTrips\n");
+    htmlTable tablaQ1 = newTable("query1.html",4,"bikeStation","memberTrips","casualTrips","allTrips");
+    writeQ1Rec(stations->firstCount,tablaQ1,csvQ1);//funcion recursva o iterativa que carga tanto html como csv
+    closeHTMLTable(tablaQ1);
+    fclose(csvQ1);
+}
+
+
+void query1(stationADT stations){
+    orderByCount(stations);
+    writeQ1(stations);//carga tanto html como csv
+};
+
+
+
+
+
+
+
+
+
+
+
+static pRental checkIfCircular(pRental rent, char * currentStationName){
+    if (strcmp(currentStationName,rent->stationNameEnd)==0){
+        return rent;
+    }
+    checkIfCircular(rent->tail,currentStationName);
+}
+
+
+
+
+static void writeQ2Rec(pStation stations, htmlTable tablaQ2, FILE * csvQ2){
+    if (stations==NULL)
+        return;
+    pRental rent = checkIfCircular(stations->oldestRental,stations->stationName);
+    char * s;
+    sscanf(s,"%d/%d/%d %d:%d",rent->dateStart->tm_mday,rent->dateStart->tm_mon,rent->dateStart->tm_year,
+    rent->dateStart->tm_hour,rent->dateStart->tm_min);
+    addHTMLRow(tablaQ2,stations->stationName,rent->stationNameEnd,s);
+    fprintf(csvQ2,"%s;%s;%d/%d/%d %d:%d\n",
+    stations->stationName,
+    rent->stationNameEnd,
+    rent->dateStart->tm_mday,rent->dateStart->tm_mon,rent->dateStart->tm_year,
+    rent->dateStart->tm_hour,rent->dateStart->tm_min);
+    writeQ2Rec(stations->tailAlpha,tablaQ2,csvQ2);
+    return;
+}
+//DD/MM/YYYY HH:mm
+static void query2(struct stationCDT * stations){
+    errno = 0;
+    FILE * csvQ2 = fopen("query2.csv","wt");
+    if(errno != 0 || csvQ2==NULL){
+        perror("Ocurrio un error mientrar se creaba el archivo \"query1.csv\" \n");
+        exit (1);
+    }
+    fputs("bikeStation;bikeEndStation;oldestDateTime\n",csvQ2);
+    htmlTable tablaQ2 = newTable("query2.html",3,"bikeStation","bikeEndStation","oldestDateTime");
+    writeQ2Rec(stations->firstAlpha,tablaQ2,csvQ2);//funcion recursva o iterativa que carga tanto html como csv
+    closeHTMLTable(tablaQ2);
+    fclose(csvQ2);
+}
