@@ -59,13 +59,8 @@ static void orderByCount(stationADT stations){
 static void writeQ1Rec(pStation stations, htmlTable tablaQ1, FILE * csvQ1){
     if (stations==NULL)
         return;
-    
-    //hay que pasar los ints a str
     addHTMLRow(tablaQ1,stations->stationName,stations->amountRentalsByMembers,stations->amountRentalsByCasuals,stations->totalAmountRentals);
-    fputs(strcat(stations->stationName,";"),csvQ1);
-    fputs(strcat(stations->amountRentalsByMembers,";"),csvQ1);
-    fputs(strcat(stations->amountRentalsByCasuals,";"),csvQ1);
-    fputs(strcat(stations->totalAmountRentals,"\n"),csvQ1);
+    fprintf(csvQ1,"%s;%d;%d;%d\n",stations->stationName,stations->amountRentalsByMembers,stations->amountRentalsByCasuals,stations->totalAmountRentals);
     writeQ1Rec(stations->tailCount,tablaQ1,csvQ1);
     return;
 }
@@ -77,7 +72,7 @@ static void writeQ1(stationADT stations){
         perror("Ocurrio un error mientrar se creaba el archivo \"query1.csv\" \n");
         exit (1);
     }
-    fputs("bikeStation;memberTrips;casualTrips;allTrips\n",csvQ1);
+    fprintf(csvQ1,"bikeStation;memberTrips;casualTrips;allTrips\n");
     htmlTable tablaQ1 = newTable("query1.html",4,"bikeStation","memberTrips","casualTrips","allTrips");
     writeQ1Rec(stations->firstCount,tablaQ1,csvQ1);//funcion recursva o iterativa que carga tanto html como csv
     closeHTMLTable(tablaQ1);
@@ -86,7 +81,7 @@ static void writeQ1(stationADT stations){
 
 
 void query1(stationADT stations){
-    orderByCount(stations);//no implementada
+    orderByCount(stations);
     writeQ1(stations);//carga tanto html como csv
 };
 

@@ -130,7 +130,35 @@ static void addToTree(stationsIdBST root, size_t id, struct station * associated
     }
 }
 
-pStation addStation(pStation alphaList,char * stationName, stationsIdBST idBst, size_t stationId){
+char* copiarCadena(const char *origen) {
+    // Obtener la longitud de la cadena de origen
+    size_t longitud = strlen(origen);
+
+    // Asignar memoria dinámica para la cadena de destino
+    char *destino = (char*)malloc((longitud + 1) * sizeof(char));
+
+    // Verificar si la asignación de memoria fue exitosa
+    if (destino == NULL) {
+        perror("Error al asignar memoria");
+        exit(EXIT_FAILURE);
+    }
+
+    // Copiar la cadena de origen a la zona de memoria dinámica
+    strcpy(destino, origen);
+
+    // Devolver la dirección de la zona de memoria asignada
+    return destino;
+}
+
+
+
+void addStation(stationADT station,char * stationName, stationsIdBST idBst, size_t stationId){
+    char * name =copiarCadena(stationName);
+    station->firstAlpha=addStationRec(station->firstAlpha,name,idBst,stationId);
+    return;
+}
+
+static pStation addStationRec(pStation alphaList,char * stationName, stationsIdBST idBst, size_t stationId){
     if(alphaList == NULL || strcasecmp(alphaList->stationName,stationName) < 0){//si llegue al final o era vacia o tengo que añadir añado
         //incorporacion a la lista
         pStation newNode = calloc(1,sizeof(struct station));
@@ -144,7 +172,7 @@ pStation addStation(pStation alphaList,char * stationName, stationsIdBST idBst, 
         //ya estaba???
         return alphaList;
     }
-    alphaList->tailAlpha = addStation(alphaList->tailAlpha, stationName, idBst, stationId);
+    alphaList->tailAlpha = addStationRec(alphaList->tailAlpha, stationName, idBst, stationId);
     return alphaList;
 }
 
@@ -172,7 +200,7 @@ static char isValidRental(size_t startStationId, size_t endStationId, stationsId
     return (startStationId != endStationId && (isValidId(startStationId, idBst, startStation) && isValidId(endStationId, idBst, endStation)));;
 }
 
-pRental addRentalRec(pRental rentalList, struct tm * startDate, struct tm * endDate, char * endStationName){
+static pRental addRentalRec(pRental rentalList, struct tm * startDate, struct tm * endDate, char * endStationName){
     double cmp;
     if(rentalList == NULL || (cmp = difftime(mktime(startDate),mktime(rentalList->dateStart))) < 0){
         pRental newRental = malloc(sizeof(struct rental));
@@ -208,153 +236,9 @@ stationADT deleteStation(){
 }
 
 void freeAssets(){
-
+    // no olvidar hacer free de nombres
 }
 
-void inicializerNYCFormat(char const * argv[],stationADT newStation){
-    //stationsIdBST tree=NULL;
-    errno = 0;
-    FILE * stationsNYC = fopen( argv[2], "rt");
-    if(errno != 0 || stationsNYC==NULL){
-        perror("Ocurrio un error mientrar se abria el archivo de las estaciones de Montreal\n");
-        exit (1);
-    }
-    char * s = NULL;
-    size_t longitud = 0;
-    // Leer líneas desde el archivo
-    errno=0;
-    if(getline(&s, &longitud, stationsNYC)==-1){
-        perror("Ocurrio un error leyendo la primer linea del archivo de estaciones de Montreall\n");
-        exit (1);
-    }
-    while (!feof(stationsNYC)){
-        getline(&s, &longitud, stationsNYC);
-        char * name;
-        int id;
-        char * token=strtok(s,";");
-        for (int q = 0; q < 4; q++) {
-            if (token != NULL) {
-                switch (q) {
-                    case 0:
-                        // leo el name
-                        // newStation->firstAlpha = addStation(newStation->firstAlpha, token, tree, id);
-                        name=token;
-                        break;
-                    case 3:
-                        // leo el id
-                        id = atoi(token);
-                        printf("%d;%s\n", id, name);
-                        break;
-                    default:
-                        break;
-                }
-            }
-            token = strtok(NULL, ";");  // Mueve la llamada a strtok fuera del switch
-        }
-    }
-    
-    fclose(stationsNYC);
-}
-
-void inicializerMONFormat(char const * argv[],stationADT newStation){
-    //stationsIdBST tree=NULL;
-    errno = 0;
-    FILE * stationsMON = fopen( argv[2], "rt");
-    if(errno != 0 || stationsMON==NULL){
-        perror("Ocurrio un error mientrar se abria el archivo de las estaciones de Montreal\n");
-        exit (1);
-    }
-    char * s = NULL;
-    size_t longitud = 0;
-    // Leer líneas desde el archivo
-    errno=0;
-    if(getline(&s, &longitud, stationsMON)==-1){
-        perror("Ocurrio un error leyendo la primer linea del archivo de estaciones de Montreall\n");
-        exit (1);
-    }
-    while (!feof(stationsMON)){
-        getline(&s, &longitud, stationsMON);
-        int id;
-        char * token=strtok(s,";");
-        for (int q = 0; q < 4; q++) {
-            if (token != NULL && q < 2) {
-                switch (q) {
-                    case 0:
-                        // leo el id
-                        id = atoi(token);
-                        break;
-                    case 1:
-                        // leo el name
-                        // newStation->firstAlpha = addStation(newStation->firstAlpha, token, tree, id);
-                        printf("%d;%s\n", id, token);
-                        break;
-                    default:
-                        break;
-                }
-            }
-            token = strtok(NULL, ";");  // Mueve la llamada a strtok fuera del switch
-        }
-    }
-    
-    fclose(stationsMON);
-}
-
-
-void inicializerBikesMONFormat(char const *argv[],stationADT newStation){
-    errno=0;
-    FILE * bikesMON = fopen( argv[1], "rt");
-    if(errno != 0 && bikesMON==NULL){
-        perror("Ocurrio un error mientrar se abria el archivo de viajes realizados en Montreal\n");
-        exit (1);
-    }
-    
-    char * s = NULL;
-    size_t longitud = 0;
-    // Leer líneas desde el archivo
-    errno=0;
-    if(getline(&s, &longitud, bikesMON)==-1){
-        perror("Ocurrio un error leyendo la primer linea del archivo de viajes realizados en Montreal\n");
-        exit (1);
-    }
-    printf("%s",s);
-    free(s);
-    while (!feof(bikesMON)){
-    s=NULL;
-    getline(&s, &longitud, bikesMON);
-    struct tm startDate, endDate;
-    int idStart, idEnd, isMember;
-            // Formato: yyyy-mm-dd HH:mm:ss;idStart;yyyy-mm-dd HH:mm:ss;idEnd;isMember
-    int result = sscanf(s, "%d-%d-%d %d:%d:%d;%d;%d-%d-%d %d:%d:%d;%d;%d",
-                        &startDate.tm_year, &startDate.tm_mon, &startDate.tm_mday,
-                        &startDate.tm_hour, &startDate.tm_min, &startDate.tm_sec,
-                        &idStart,
-                        &endDate.tm_year, &endDate.tm_mon, &endDate.tm_mday,
-                        &endDate.tm_hour, &endDate.tm_min, &endDate.tm_sec,
-                        &idEnd,
-                        &isMember);
-
-        if (result == 15) {
-            // La cadena se analizó correctamente, los valores están en las variables correspondientes.
-            printf("%d-%02d-%02d %02d:%02d:%02d;\t", startDate.tm_year, startDate.tm_mon, startDate.tm_mday,
-                   startDate.tm_hour, startDate.tm_min, startDate.tm_sec);
-            printf("%d;\t", idStart);
-            printf("%d-%02d-%02d %02d:%02d:%02d;\t", endDate.tm_year, endDate.tm_mon, endDate.tm_mday,
-                   endDate.tm_hour, endDate.tm_min, endDate.tm_sec);
-            printf("%d;\t", idEnd);
-            printf("%d;\n", isMember);
-        } 
-        else if (result==0)
-        {
-            //goddddd
-        }
-        else {
-            // Hubo un problema al analizar la cadena
-            printf("Error al analizar la cadena\n");
-        }
-        free(s);
-    }
-    fclose(bikesMON);
-}
 
 /* int main(int argc, char const *argv[])
 {
@@ -368,51 +252,6 @@ void inicializerBikesMONFormat(char const *argv[],stationADT newStation){
 } */
 
 
-void inicializerBikesNYCFormat(char const *argv[],stationADT newStation){
-    errno=0;
-    FILE * bikesNYC = fopen( argv[1], "rt");
-    if(errno != 0 && bikesNYC==NULL){
-        perror("Ocurrio un error mientrar se abria el archivo de viajes realizados en Montreal\n");
-        exit (1);
-    }
-    
-    char * s = NULL;
-    size_t longitud = 0;
-    errno=0;
-    if(getline(&s, &longitud, bikesNYC)==-1){
-        perror("Ocurrio un error leyendo la primer linea del archivo de viajes realizados en Nueva York\n");
-        exit (1);
-    }
-    free(s);
-    while (!feof(bikesNYC)){
-        s=NULL;
-        getline(&s, &longitud, bikesNYC);
-        struct tm startDate, endDate;
-        int idStart, idEnd;
-        char isMember;
-                // Formato: yyyy-mm-dd HH:mm:ss;idStart;yyyy-mm-dd HH:mm:ss;idEnd;rideable_type;member_casual
-        int result = sscanf(s, "%d-%d-%d %d:%d:%d.000000;%d;%d-%d-%d %d:%d:%d.000000;%d;%*[^;];%c\n",
-                            &startDate.tm_year, &startDate.tm_mon, &startDate.tm_mday, &startDate.tm_hour, &startDate.tm_min, &startDate.tm_sec,
-                            &idStart,
-                            &endDate.tm_year, &endDate.tm_mon, &endDate.tm_mday,&endDate.tm_hour, &endDate.tm_min, &endDate.tm_sec,
-                            &idEnd,&isMember);
-        if (result == 15) {
-            // La cadena se analizó correctamente, los valores están en las variables correspondientes.
-            printf("%d-%02d-%02d %02d:%02d:%02d;\t", startDate.tm_year, startDate.tm_mon, startDate.tm_mday,
-                   startDate.tm_hour, startDate.tm_min, startDate.tm_sec);
-            printf("%d;\t", idStart);
-            printf("%d-%02d-%02d %02d:%02d:%02d;\t", endDate.tm_year, endDate.tm_mon, endDate.tm_mday,
-                   endDate.tm_hour, endDate.tm_min, endDate.tm_sec);
-            printf("%d;\t", idEnd);
-            printf("%d;\n", isMember=='m');
-        } else {
-            // Hubo un problema al analizar la cadena
-            printf("Error al analizar la cadena\n");
-        }
-            free(s);
-    }
-    fclose(bikesNYC);
-}
 
 /* int main(int argc, char const *argv[])
 {
