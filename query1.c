@@ -20,9 +20,6 @@ typedef struct station * pStation ;
 struct station //lista
 {
     char * stationName;
-    // long double latitude; ver si es necesario
-    // long double longitude;
-    // size_t id;
     pRental oldestRental; //lista
     size_t amountRentalsByMembers;  //contadores para q1
     size_t amountRentalsByCasuals;  //contadores para q1
@@ -33,9 +30,9 @@ struct station //lista
 
 struct stationCDT
 {
-    pStation firstAlpha;//lista estaciones orden alfabetico (osea digamos puntero a primer nodo)
-    pStation firstCount;//lista oredenada segun cantidad de viajes iniciados en esa estacion
-};                              //osea digamos soy nahue, es necesario esto ??????????????????????????????????????????????????????????????????????????????????????????
+    pStation firstAlpha;
+    pStation firstCount;
+};                              
 
 static pStation link(pStation station,pStation listCount){
     if(listCount == NULL || station->totalAmountRentals <= listCount->totalAmountRentals){

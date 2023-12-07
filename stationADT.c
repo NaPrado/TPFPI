@@ -74,43 +74,6 @@ struct stationsIdNode{ //arbol binario de busqueda basado en cada id de estacion
 
 typedef struct stationsIdNode * stationsIdBST;
 
-__ssize_t getline(char **lineptr, size_t *n, FILE *stream) {
-    if (*lineptr == NULL || *n == 0) {
-        // Si no hay un búfer asignado o el tamaño es 0, asignar un nuevo búfer
-        *n = 10; // Puedes ajustar el tamaño inicial según tus necesidades
-        *lineptr = (char *)malloc(*n);
-        if (*lineptr == NULL) {
-            return -1; // Error de asignación de memoria
-        }
-    }
-
-    size_t pos = 0;
-    int c;
-
-    while ((c = fgetc(stream)) != EOF && c != '\n') {
-        (*lineptr)[pos++] = c;
-
-        // Verificar si necesitamos redimensionar el búfer
-        if (pos >= *n - 1) {
-            *n *= 2; // Duplicar el tamaño del búfer
-            char *new_lineptr = (char *)realloc(*lineptr, *n);
-            if (new_lineptr == NULL) {
-                free(*lineptr);
-                return -1; // Error de realocación de memoria
-            }
-            *lineptr = new_lineptr;
-        }
-    }
-
-    if (pos == 0 && c == EOF) {
-        //free(*lineptr);
-        return -1; // No se leyó ninguna línea y se alcanzó el final del archivo
-    }
-
-    (*lineptr)[pos] = '\0'; // Agregar el carácter nulo al final de la línea
-    return pos; // Devolver el número de caracteres leídos
-}
-
 stationADT newStation(void){
     stationADT new = calloc(1,sizeof(struct stationCDT));
     return new;
@@ -129,28 +92,6 @@ static void addToTree(stationsIdBST root, size_t id, struct station * associated
         }
     }
 }
-
-char* copiarCadena(const char *origen) {
-    // Obtener la longitud de la cadena de origen
-    size_t longitud = strlen(origen);
-
-    // Asignar memoria dinámica para la cadena de destino
-    char *destino = (char*)malloc((longitud + 1) * sizeof(char));
-
-    // Verificar si la asignación de memoria fue exitosa
-    if (destino == NULL) {
-        perror("Error al asignar memoria");
-        exit(EXIT_FAILURE);
-    }
-
-    // Copiar la cadena de origen a la zona de memoria dinámica
-    strcpy(destino, origen);
-
-    // Devolver la dirección de la zona de memoria asignada
-    return destino;
-}
-
-
 
 void addStation(stationADT station,char * stationName, stationsIdBST idBst, size_t stationId){
     char * name =copiarCadena(stationName);
