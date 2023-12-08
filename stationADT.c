@@ -83,6 +83,9 @@ struct stationsIdNode{ //arbol binario de busqueda basado en cada id de estacion
     struct stationsIdNode * right;
 };
 
+struct bst {
+	stationsIdBST root;	    // raíz del arbol
+};
 
 char* copyString(const char * origin) {
     // Obtener la longitud de la cadena de origen
@@ -104,51 +107,67 @@ char* copyString(const char * origin) {
     return toReturn;
 }
 
+bst newtree(void) {
+    return calloc(1,sizeof(struct bst));
+}
 
 stationADT newStation(void){
     stationADT new = calloc(1,sizeof(struct stationCDT));
     return new;
 }
 
-static void addToTree(stationsIdBST root, size_t id, struct station * associatedStation){
+
+
+
+static stationsIdBST addToTreeRec(stationsIdBST root, size_t id, struct station * associatedStation){
     if (root == NULL){
-        root = calloc(1,sizeof(struct stationsIdNode));
-        root->stationId = id;
-        root->associatedStation = associatedStation;
-    }else{
-        if (id <= root->stationId){
-            addToTree(root->left, id, associatedStation);
-        }else{
-            addToTree(root->right, id, associatedStation);
-        }
+        stationsIdBST aux =calloc(1,sizeof(struct stationsIdNode));
+        aux->stationId=id;
+        aux->associatedStation=associatedStation;
+        return aux;
     }
+    int c=(root->stationId - id);
+    if (c < 0)
+    {
+        root->right=addToTreeRec(root->right,id,associatedStation);
+    }
+    else if (c>0)
+    {
+        root->left =addToTreeRec(root->left,id,associatedStation);
+    }
+    return root;
 }
 
-static pStation addStationRec(pStation alphaList,char * stationName, stationsIdBST idBst, size_t stationId){
+static void addToTree(bst bst, size_t id, struct station * associatedStation){
+    bst->root = addToTreeRec(bst->root,id,associatedStation);
+    return;
+}
+
+static pStation addStationRec(pStation alphaList,char * stationName, bst rootbst, size_t stationId){
     if(alphaList == NULL || strcasecmp(alphaList->stationName,stationName) < 0){//si llegue al final o era vacia o tengo que añadir añado
         //incorporacion a la lista
         pStation newNode = calloc(1,sizeof(struct station));
         newNode->stationName = stationName; //ver si anda.
         newNode->tailAlpha = alphaList;
         //incorporacion a el BST
-        addToTree(idBst,stationId,newNode);
+        addToTree(rootbst,stationId,newNode);
         return newNode;
     }
     if(strcasecmp(alphaList->stationName,stationName) == 0){
         //ya estaba???
         return alphaList;
     }
-    alphaList->tailAlpha = addStationRec(alphaList->tailAlpha, stationName, idBst, stationId);
+    alphaList->tailAlpha = addStationRec(alphaList->tailAlpha, stationName, rootbst, stationId);
     return alphaList;
 }
 
-void addStation(stationADT station,char * stationName, stationsIdBST idBst, size_t stationId){
+void addStation(stationADT station,char * stationName, bst rootbst, size_t stationId){
     char * name =copyString(stationName);
-    station->firstAlpha=addStationRec(station->firstAlpha,name,idBst,stationId);
+    station->firstAlpha=addStationRec(station->firstAlpha,name,rootbst,stationId);
     return;
 }
 
-static char isValidId(size_t id, stationsIdBST root, pStation * correctStation){
+static char isValidIdRec(size_t id, stationsIdBST root, pStation * correctStation){
     if(root == NULL){
         return 0;
     }
@@ -159,16 +178,20 @@ static char isValidId(size_t id, stationsIdBST root, pStation * correctStation){
         }
         else{
             if(id < root->stationId){
-                return isValidId(id,root->left, correctStation);
+                return isValidIdRec(id,root->left, correctStation);
             }
             else{
-                return isValidId(id,root->right, correctStation);
+                return isValidIdRec(id,root->right, correctStation);
             }
         }
     }
 }
 
-static char isValidRental(size_t startStationId, size_t endStationId, stationsIdBST idBst, pStation * startStation, pStation * endStation){
+static char isValidId(size_t id, bst root, pStation * correctStation){
+    return isValidIdRec(id,root->root,correctStation);
+}
+
+static char isValidRental(size_t startStationId, size_t endStationId, bst idBst, pStation * startStation, pStation * endStation){
     return (isValidId(startStationId, idBst, startStation) && isValidId(endStationId, idBst, endStation));;
 }
 
@@ -186,7 +209,7 @@ static pRental addRentalRec(pRental rentalList, struct tm * startDate, struct tm
     return rentalList;
 }
 
-void addRental(stationsIdBST idBST, struct tm * startDate,size_t startId,struct tm * endDate, size_t endId, char association){
+void addRental(bst idBST, struct tm * startDate,size_t startId,struct tm * endDate, size_t endId, char association){
     pStation startStation, endStation;
     if(!isValidRental(startId, endId, idBST, &startStation, &endStation)){
         return;
@@ -202,19 +225,27 @@ void addRental(stationsIdBST idBST, struct tm * startDate,size_t startId,struct 
     }
 }
 
-void freeTree(stationsIdBST root){
+void freeTreeRec(stationsIdBST root){
     if(root == NULL){
         return;
     }
-    freeTree(root->left);
-    freeTree(root->right);
+    freeTreeRec(root->left);
+    freeTreeRec(root->right);
     free(root);
 }
+
+void freeTree(bst root){
+    freeTreeRec(root->root);
+    free(root);
+}   
 
 static void freeRentals(pRental rentalList){
     if(rentalList == NULL){
         return;
     }
+    free(rentalList->dateEnd);
+    free(rentalList->dateStart);
+//    free(rentalList->stationNameEnd);
     freeRentals(rentalList->tail);
     free(rentalList);
     return;
@@ -260,7 +291,7 @@ int main(int argc, char const *argv[])
  */
 
 static pStation link(pStation station,pStation listCount){
-    if(listCount == NULL || station->totalAmountRentals <= listCount->totalAmountRentals){
+    if(listCount->tailCount == NULL || station->totalAmountRentals <= listCount->totalAmountRentals){
         station->tailCount = listCount;
         listCount->tailCount = station;
         return listCount;

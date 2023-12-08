@@ -49,7 +49,7 @@ static __ssize_t getline(char **lineptr, size_t *n, FILE *stream) {
     return pos; // Devolver el número de caracteres leídos
 }
 
-static void inicializerBikesMONFormat(char const *argv[],stationsIdBST tree){
+static void inicializerBikesMONFormat(char const *argv[],bst tree){
     errno=0;
     FILE * bikesMON = fopen( argv[1], "rt");
     if(errno != 0 && bikesMON==NULL){
@@ -65,7 +65,6 @@ static void inicializerBikesMONFormat(char const *argv[],stationsIdBST tree){
         perror("Ocurrio un error leyendo la primer linea del archivo de viajes realizados en Montreal\n");
         exit (1);
     }
-    printf("%s",s);
     free(s);
     while (!feof(bikesMON)){
     s=NULL;
@@ -99,7 +98,7 @@ static void inicializerBikesMONFormat(char const *argv[],stationsIdBST tree){
 }
 
 void inicializerMONFormat(char const * argv[],stationADT station){
-    stationsIdBST tree=NULL;
+    bst tree=newtree();
     errno = 0;
     FILE * stationsMON = fopen( argv[2], "rt");
     if(errno != 0 || stationsMON==NULL){
@@ -139,6 +138,6 @@ void inicializerMONFormat(char const * argv[],stationADT station){
     
     fclose(stationsMON);
     inicializerBikesMONFormat(argv,tree);
-    orderByCount(station);
+    //orderByCount(station);
     freeTree(tree);
 }

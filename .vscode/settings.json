@@ -6,6 +6,7 @@
         "stationadt.h": "c",
         "string.h": "c",
         "strings.h": "c",
-        "math.h": "c"
+        "math.h": "c",
+        "stdio.h": "c"
     }
 }
