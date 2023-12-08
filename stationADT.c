@@ -9,9 +9,28 @@
 //#include <stdbool.h>
 #include "stationADT.h"
 
+
+
 #define BLOQUECHARS 10
 #define MEMBER 1
 #define CASUAL 0 
+#define DAYS_IN_WEEK 7
+
+
+
+enum DAYS           
+{
+    saturday,     
+    sunday,     
+    monday,       
+    tuesday,
+    wednesday,     
+    thursday,
+    friday
+} workday;
+
+
+
 
 // el tipo de dato es el mismo tanto para stationsNYC como stationsMON, lo que cambia es como obtenemos esos datos;
 
@@ -65,14 +84,16 @@ struct stationCDT
     pStation firstCount;//lista oredenada segun cantidad de viajes iniciados en esa estacion
 };                              
 
+//typedef struct stationsIdNode * stationsIdBST;
+
 struct stationsIdNode{ //arbol binario de busqueda basado en cada id de estacion
     size_t stationId;
     struct station * associatedStation;
-    struct stationsIdBST * left;
-    struct stationsIdBST * right;
+    stationsIdBST left;
+    stationsIdBST right;
 };
 
-typedef struct stationsIdNode * stationsIdBST;
+
 
 char* copiarCadena(const char *origen) {
     // Obtener la longitud de la cadena de origen
@@ -114,12 +135,6 @@ static void addToTree(stationsIdBST root, size_t id, struct station * associated
     }
 }
 
-void addStation(stationADT station,char * stationName, stationsIdBST idBst, size_t stationId){
-    char * name =copiarCadena(stationName);
-    station->firstAlpha=addStationRec(station->firstAlpha,name,idBst,stationId);
-    return;
-}
-
 static pStation addStationRec(pStation alphaList,char * stationName, stationsIdBST idBst, size_t stationId){
     if(alphaList == NULL || strcasecmp(alphaList->stationName,stationName) < 0){//si llegue al final o era vacia o tengo que añadir añado
         //incorporacion a la lista
@@ -136,6 +151,12 @@ static pStation addStationRec(pStation alphaList,char * stationName, stationsIdB
     }
     alphaList->tailAlpha = addStationRec(alphaList->tailAlpha, stationName, idBst, stationId);
     return alphaList;
+}
+
+void addStation(stationADT station,char * stationName, stationsIdBST idBst, size_t stationId){
+    char * name =copiarCadena(stationName);
+    station->firstAlpha=addStationRec(station->firstAlpha,name,idBst,stationId);
+    return;
 }
 
 static char isValidId(size_t id, stationsIdBST root, pStation * correctStation){
@@ -193,9 +214,9 @@ void addRental(stationsIdBST idBST, struct tm * startDate,size_t startId,struct 
 }
 
 //quiza no haga falta 
-stationADT deleteStation(){
+/* stationADT deleteStation(){
 
-}
+} */
 
 void freeAssets(){
     // no olvidar hacer free de nombres
@@ -267,7 +288,7 @@ static void writeQ1Rec(pStation stations, htmlTable tablaQ1, FILE * csvQ1){
     if (stations==NULL)
         return;
     addHTMLRow(tablaQ1,stations->stationName,stations->amountRentalsByMembers,stations->amountRentalsByCasuals,stations->totalAmountRentals);
-    fprintf(csvQ1,"%s;%d;%d;%d\n",stations->stationName,stations->amountRentalsByMembers,stations->amountRentalsByCasuals,stations->totalAmountRentals);
+    fprintf(csvQ1,"%s;%ld;%ld;%ld\n",stations->stationName,stations->amountRentalsByMembers,stations->amountRentalsByCasuals,stations->totalAmountRentals);
     writeQ1Rec(stations->tailCount,tablaQ1,csvQ1);
     return;
 }
@@ -290,7 +311,7 @@ static void writeQ1(stationADT stations){
 void query1(stationADT stations){
     orderByCount(stations);
     writeQ1(stations);//carga tanto html como csv
-};
+}
 
 
 
@@ -306,7 +327,7 @@ static pRental checkIfCircular(pRental rent, char * currentStationName){
     if (strcmp(currentStationName,rent->stationNameEnd)==0){
         return rent;
     }
-    checkIfCircular(rent->tail,currentStationName);
+    return checkIfCircular(rent->tail,currentStationName);
 }
 
 
@@ -316,8 +337,8 @@ static void writeQ2Rec(pStation stations, htmlTable tablaQ2, FILE * csvQ2){
     if (stations==NULL)
         return;
     pRental rent = checkIfCircular(stations->oldestRental,stations->stationName);
-    char * s;
-    sscanf(s,"%d/%d/%d %d:%d",rent->dateStart->tm_mday,rent->dateStart->tm_mon,rent->dateStart->tm_year,
+    char * s=NULL;
+    sprintf(s,"%d/%d/%d %d:%d",rent->dateStart->tm_mday,rent->dateStart->tm_mon,rent->dateStart->tm_year,
     rent->dateStart->tm_hour,rent->dateStart->tm_min);
     addHTMLRow(tablaQ2,stations->stationName,rent->stationNameEnd,s);
     fprintf(csvQ2,"%s;%s;%d/%d/%d %d:%d\n",
@@ -341,4 +362,68 @@ void query2(struct stationCDT * stations){
     writeQ2Rec(stations->firstAlpha,tablaQ2,csvQ2);//funcion recursva o iterativa que carga tanto html como csv
     closeHTMLTable(tablaQ2);
     fclose(csvQ2);
+}
+
+
+
+
+
+static int dayOfWeek(int day, int month, int year){
+    if (month < 3) {
+        month += 12;
+        year--;
+    }
+    int yearInCentury = year % 100;
+    int century = year / 100 ;
+    int h = ( day + (13 * ( month + 1 )) / 5 + yearInCentury + yearInCentury / 4 + century / 4 - 2 * century ) % 7;
+    return h;
+}
+
+void countTrips(pRental rentalList, size_t * startedTrips, size_t * endedTrips){
+    while(rentalList != NULL){
+        startedTrips[dayOfWeek(rentalList->dateStart->tm_mday,rentalList->dateStart->tm_mon+1,rentalList->dateStart->tm_year+1900)]+=1;
+        endedTrips[dayOfWeek(rentalList->dateEnd->tm_mday,rentalList->dateEnd->tm_mon+1,rentalList->dateEnd->tm_year+1900)]+=1;
+        rentalList=rentalList->tail;
+    }
+    return;
+}
+
+void writeQ3(size_t * startedTrips, size_t * endedTrips){
+    char * weekDays[]={"Saturday","Sunday","Monday","Tuesday","Wednesday","Thursday","Friday"};
+    errno = 0;
+    FILE * csvQ3 = fopen("query3.csv","wt");
+    if(errno != 0 || csvQ3==NULL){
+        perror("Ocurrio un error mientrar se creaba el archivo \"query1.csv\" \n");
+        exit (1);
+    }
+    fputs("weekDay;startedTrips;endedTrips\n",csvQ3);
+    htmlTable tablaQ3 = newTable("query3.html",3,"weekDay","startedTrips","endedTrips");
+    for (size_t i = monday, j=i; i < DAYS_IN_WEEK+monday; i++)
+    {
+        if (i%friday==0)
+        {
+            j=saturday;
+        }
+        else{
+            j++;
+        }
+        fscanf(csvQ3,"%s;%lu;%lu\n",*(weekDays+j),startedTrips+j,endedTrips+j);
+        char * sT=NULL, * eT=NULL;
+        sprintf(sT,"%ld",startedTrips[j]);
+        sprintf(eT,"%ld",endedTrips[j]);
+        addHTMLRow(tablaQ3,*(weekDays+j),sT,eT);
+    }
+    closeHTMLTable(tablaQ3);
+    fclose(csvQ3);
+}
+
+void query3(stationADT stations){
+    size_t startedTrips[DAYS_IN_WEEK];
+    size_t endedTrips[DAYS_IN_WEEK];
+    pStation aux = stations->firstCount;
+    while(aux != NULL && aux->totalAmountRentals != 0){
+        countTrips(aux->oldestRental, startedTrips, endedTrips);
+        aux=aux->tailCount;
+    }
+    writeQ3(startedTrips,endedTrips);
 }

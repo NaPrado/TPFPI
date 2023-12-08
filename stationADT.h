@@ -5,11 +5,8 @@
 typedef struct stationCDT * stationADT; 
 typedef struct stationsIdNode *stationsIdBST;
 typedef struct station * pStation ;
-char isValidRental();
 
 char* copiarCadena(const char *origen);
-
-__ssize_t getline(char **lineptr, size_t *n, FILE *stream);
 
 stationADT newStation(void);
 

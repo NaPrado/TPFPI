@@ -12,8 +12,7 @@ int main(int argc, char const *argv[])
     query1(new);
     query2(new);
     query3(new);
-    freeStation(new);
-    freeAssets();
+    //freeAssets();
     printf("%ld\n",time(NULL)-t);
     return 0;
 }
