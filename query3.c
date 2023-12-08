@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include "libreria HTML/htmlTable.h" 
 #define DAYS_IN_WEEK 7
 
 enum DAYS           
@@ -70,11 +71,33 @@ void countTrips(pRental rentalList, size_t * startedTrips, size_t * endedTrips){
     return;
 }
 
-void writeQ3(size_t * startedTrips, size_t endedTrips){
-    //imprimir "titulo"
-    //algo q imprima:
-    // "Monday;%d;%d\nTuesday;%d;%d\nWednesday;%d;%d\nThursday;%d;%d\nFriday;%d;%d\nSaturday;%d;%d\nSunday;%d;%d\n", startedtrips[monday],endedTrips[monday],startedtrips[tuesday],endedTrips[tuesday],startedtrips[wednesday],endedTrips[wednesday],startedtrips[thursday],endedTrips[thursday],startedtrips[friday],endedTrips[friday],startedtrips[saturday],endedTrips[saturday],startedtrips[sunday],endedTrips[sunday]
-
+void writeQ3(size_t * startedTrips, size_t * endedTrips){
+    char ** weekDays={"Saturday","Sunday","Monday","Tuesday","Wednesday","Thursday","Friday"};
+    errno = 0;
+    FILE * csvQ3 = fopen("query3.csv","wt");
+    if(errno != 0 || csvQ3==NULL){
+        perror("Ocurrio un error mientrar se creaba el archivo \"query1.csv\" \n");
+        exit (1);
+    }
+    fputs("weekDay;startedTrips;endedTrips\n",csvQ3);
+    htmlTable tablaQ3 = newTable("query3.html",3,"weekDay","startedTrips","endedTrips");
+    for (size_t i = 2, j=i; i < DAYS_IN_WEEK+monday; i++)
+    {
+        if (i%friday==0)
+        {
+            j=saturday;
+        }
+        else{
+            j++;
+        }
+        fscanf(csvQ3,"%s;%d;%d\n",*(weekDays+j),startedTrips[j],endedTrips[j]);
+        char * sT, * eT;
+        sprintf(sT,"%d",startedTrips);
+        sprintf(eT,"%d",endedTrips);
+        addHTMLRow(tablaQ3,*(weekDays+j),sT,eT);
+    }
+    closeHTMLTable(tablaQ3);
+    fclose(csvQ3);
 }
 
 void query3(stationADT stations){
