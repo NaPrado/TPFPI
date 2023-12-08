@@ -54,65 +54,57 @@ enum DAYS
 typedef struct rental * pRental ;
 struct rental //datos del archivo Bike se guardaran en formato de lista ordenada por stationIdStart 
 {
-    // size_t stationIdStart; redundante con la lista de estaciones
     struct tm * dateStart;
     char * stationNameEnd;
     struct tm * dateEnd;
-    //bool is_member;
     pRental tail;
 };
-
-/* typedef struct station * pStation ; */
 
 struct station //lista
 {
     char * stationName;
-    // long double latitude; ver si es necesario
-    // long double longitude;
-    // size_t id;
     pRental oldestRental; //lista
     size_t amountRentalsByMembers;  //contadores para q1
     size_t amountRentalsByCasuals;  //contadores para q1
     size_t totalAmountRentals;      //contadores para q1
-    pStation tailAlpha;
-    pStation tailCount;             //util para q1
+    struct station * tailAlpha;
+    struct station * tailCount;             //util para q1
 };
 
+typedef struct station * pStation ;
 struct stationCDT
 {
     pStation firstAlpha;//lista estaciones orden alfabetico (puntero a primer nodo)
     pStation firstCount;//lista oredenada segun cantidad de viajes iniciados en esa estacion
 };                              
-
-//typedef struct stationsIdNode * stationsIdBST;
-
 struct stationsIdNode{ //arbol binario de busqueda basado en cada id de estacion
     size_t stationId;
-    struct station * associatedStation;
-    stationsIdBST left;
-    stationsIdBST right;
+    pStation associatedStation;
+    struct stationsIdNode *  left;
+    struct stationsIdNode * right;
 };
 
+typedef struct stationsIdNode * stationsIdBST;
 
 
-char* copiarCadena(const char *origen) {
+char* copiarCadena(const char * origin) {
     // Obtener la longitud de la cadena de origen
-    size_t longitud = strlen(origen);
+    size_t length = strlen(origin);
 
     // Asignar memoria dinámica para la cadena de destino
-    char *destino = (char*)malloc((longitud + 1) * sizeof(char));
+    char *toReturn = (char*)malloc((length + 1) * sizeof(char));
 
     // Verificar si la asignación de memoria fue exitosa
-    if (destino == NULL) {
+    if (toReturn == NULL) {
         perror("Error al asignar memoria");
         exit(EXIT_FAILURE);
     }
 
     // Copiar la cadena de origen a la zona de memoria dinámica
-    strcpy(destino, origen);
+    strcpy(toReturn, origin);
 
     // Devolver la dirección de la zona de memoria asignada
-    return destino;
+    return toReturn;
 }
 
 
@@ -213,15 +205,41 @@ void addRental(stationsIdBST idBST, struct tm * startDate,size_t startId,struct 
     }
 }
 
-//quiza no haga falta 
-/* stationADT deleteStation(){
-
-} */
-
-void freeAssets(){
-    // no olvidar hacer free de nombres
+static void freeTree(stationsIdBST root){
+    if(root == NULL){
+        return;
+    }
+    freeTree(root->left);
+    freeTree(root->right);
+    free(root);
 }
 
+static void freeRentals(pRental rentalList){
+    if(rentalList == NULL){
+        return;
+    }
+    freeRentals(rentalList->tail);
+    free(rentalList);
+    return;
+}
+
+static void freeStations(pStation stationList){
+    if(stationList == NULL){
+        return;
+    }
+    freeStations(stationList->tailAlpha);
+    free(stationList->stationName);
+    freeRentals(stationList->oldestRental);
+    free(stationList);
+    return;
+}
+
+void freeAssets(stationADT stations, stationsIdBST bst){
+    //lista de cosas a liberar: el adt,todo el arbol,cada estacion,cada rental,cada nombre
+    freeTree(bst);
+    freeStations(stations->firstAlpha);
+    free(stations);
+}
 
 /* int main(int argc, char const *argv[])
 {
@@ -232,11 +250,8 @@ void freeAssets(){
     free(newStation);
     printf("%ld\n",time(NULL)-t);
     return 0;
-} */
-
-
-
-/* int main(int argc, char const *argv[])
+}
+int main(int argc, char const *argv[])
 {
     time_t t=time(NULL);
     //stationADT newStation;
@@ -247,23 +262,6 @@ void freeAssets(){
     return 0;
 }
  */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 static pStation link(pStation station,pStation listCount){
     if(listCount == NULL || station->totalAmountRentals <= listCount->totalAmountRentals){
@@ -307,21 +305,10 @@ static void writeQ1(stationADT stations){
     fclose(csvQ1);
 }
 
-
 void query1(stationADT stations){
     orderByCount(stations);
     writeQ1(stations);//carga tanto html como csv
 }
-
-
-
-
-
-
-
-
-
-
 
 static pRental checkIfCircular(pRental rent, char * currentStationName){
     if (strcmp(currentStationName,rent->stationNameEnd)==0){
@@ -329,9 +316,6 @@ static pRental checkIfCircular(pRental rent, char * currentStationName){
     }
     return checkIfCircular(rent->tail,currentStationName);
 }
-
-
-
 
 static void writeQ2Rec(pStation stations, htmlTable tablaQ2, FILE * csvQ2){
     if (stations==NULL)
@@ -363,10 +347,6 @@ void query2(struct stationCDT * stations){
     closeHTMLTable(tablaQ2);
     fclose(csvQ2);
 }
-
-
-
-
 
 static int dayOfWeek(int day, int month, int year){
     if (month < 3) {
