@@ -6,9 +6,13 @@ typedef struct stationCDT * stationADT;
 typedef struct stationsIdNode *stationsIdBST;
 typedef struct station * pStation ;
 
-char* copiarCadena(const char *origen);
+char* copyString(const char *origen);
 
 stationADT newStation(void);
+
+void freeTree(stationsIdBST root);
+
+void orderByCount(stationADT stations);
 
 void addStation(stationADT station,char * stationName, stationsIdBST idBst, size_t stationId);
 
@@ -20,6 +24,6 @@ void query2(stationADT stations);
 
 void query3(stationADT stations);
 
-void freeAssets(stationADT stations, stationsIdBST bst);
+void freeAssets(stationADT stations);
 
 #endif

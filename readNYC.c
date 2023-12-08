@@ -135,5 +135,7 @@ void inicializerNYCFormat(char const * argv[],stationADT station){
     }
     fclose(stationsNYC);
     inicializerBikesNYCFormat(argv,newStation,tree);
+    orderByCount(station);
+    freeTree(tree);
 }
 

@@ -71,7 +71,6 @@ struct station //lista
     struct station * tailCount;             //util para q1
 };
 
-typedef struct station * pStation ;
 struct stationCDT
 {
     pStation firstAlpha;//lista estaciones orden alfabetico (puntero a primer nodo)
@@ -84,10 +83,8 @@ struct stationsIdNode{ //arbol binario de busqueda basado en cada id de estacion
     struct stationsIdNode * right;
 };
 
-typedef struct stationsIdNode * stationsIdBST;
 
-
-char* copiarCadena(const char * origin) {
+char* copyString(const char * origin) {
     // Obtener la longitud de la cadena de origen
     size_t length = strlen(origin);
 
@@ -146,7 +143,7 @@ static pStation addStationRec(pStation alphaList,char * stationName, stationsIdB
 }
 
 void addStation(stationADT station,char * stationName, stationsIdBST idBst, size_t stationId){
-    char * name =copiarCadena(stationName);
+    char * name =copyString(stationName);
     station->firstAlpha=addStationRec(station->firstAlpha,name,idBst,stationId);
     return;
 }
@@ -205,7 +202,7 @@ void addRental(stationsIdBST idBST, struct tm * startDate,size_t startId,struct 
     }
 }
 
-static void freeTree(stationsIdBST root){
+void freeTree(stationsIdBST root){
     if(root == NULL){
         return;
     }
@@ -234,9 +231,8 @@ static void freeStations(pStation stationList){
     return;
 }
 
-void freeAssets(stationADT stations, stationsIdBST bst){
-    //lista de cosas a liberar: el adt,todo el arbol,cada estacion,cada rental,cada nombre
-    freeTree(bst);
+void freeAssets(stationADT stations){
+    //lista de cosas a liberar: el adt,cada estacion,cada rental,cada nombre
     freeStations(stations->firstAlpha);
     free(stations);
 }
@@ -273,7 +269,7 @@ static pStation link(pStation station,pStation listCount){
     return listCount;
 }
 
-static void orderByCount(stationADT stations){
+void orderByCount(stationADT stations){
     pStation aux = stations->firstAlpha;
     while (aux != NULL){
         stations->firstCount = link(aux,stations->firstCount);
@@ -359,7 +355,7 @@ static int dayOfWeek(int day, int month, int year){
     return h;
 }
 
-void countTrips(pRental rentalList, size_t * startedTrips, size_t * endedTrips){
+static void countTrips(pRental rentalList, size_t * startedTrips, size_t * endedTrips){
     while(rentalList != NULL){
         startedTrips[dayOfWeek(rentalList->dateStart->tm_mday,rentalList->dateStart->tm_mon+1,rentalList->dateStart->tm_year+1900)]+=1;
         endedTrips[dayOfWeek(rentalList->dateEnd->tm_mday,rentalList->dateEnd->tm_mon+1,rentalList->dateEnd->tm_year+1900)]+=1;
@@ -368,7 +364,7 @@ void countTrips(pRental rentalList, size_t * startedTrips, size_t * endedTrips){
     return;
 }
 
-void writeQ3(size_t * startedTrips, size_t * endedTrips){
+static void writeQ3(size_t * startedTrips, size_t * endedTrips){
     char * weekDays[]={"Saturday","Sunday","Monday","Tuesday","Wednesday","Thursday","Friday"};
     errno = 0;
     FILE * csvQ3 = fopen("query3.csv","wt");
