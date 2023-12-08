@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #define DAYS_IN_WEEK 7
 
 enum DAYS           
@@ -62,8 +63,8 @@ static int dayOfWeek(int day, int month, int year){
 
 void countTrips(pRental rentalList, size_t * startedTrips, size_t * endedTrips){
     while(rentalList != NULL){
-        startedTrips[dayOfWeek(rentalList->dateStart)]+=1;
-        endedTrips[daysOfWeek(rentalList->dateEnd)]+=1;
+        startedTrips[dayOfWeek(rentalList->dateStart->tm_mday,rentalList->dateStart->tm_mon+1,rentalList->dateStart->tm_year+1900)]+=1;
+        endedTrips[daysOfWeek(rentalList->dateEnd->tm_mday,rentalList->dateEnd->tm_mon+1,rentalList->dateEnd->tm_year+1900)]+=1;
         rentalList=rentalList->tail;
     }
     return;
