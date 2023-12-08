@@ -60,13 +60,29 @@ static int dayOfWeek(int day, int month, int year){
     return h;
 }
 
+void countTrips(pRental rentalList, size_t * startedTrips, size_t * endedTrips){
+    while(rentalList != NULL){
+        startedTrips[dayOfWeek(rentalList->dateStart)]+=1;
+        endedTrips[daysOfWeek(rentalList->dateEnd)]+=1;
+        rentalList=rentalList->tail;
+    }
+    return;
+}
+
+void writeQ3(size_t * startedTrips, size_t endedTrips){
+    //imprimir "titulo"
+    //algo q imprima:
+    // "Monday;%d;%d\nTuesday;%d;%d\nWednesday;%d;%d\nThursday;%d;%d\nFriday;%d;%d\nSaturday;%d;%d\nSunday;%d;%d\n", startedtrips[monday],endedTrips[monday],startedtrips[tuesday],endedTrips[tuesday],startedtrips[wednesday],endedTrips[wednesday],startedtrips[thursday],endedTrips[thursday],startedtrips[friday],endedTrips[friday],startedtrips[saturday],endedTrips[saturday],startedtrips[sunday],endedTrips[sunday]
+
+}
+
 void query3(stationADT stations){
     size_t startedTrips[DAYS_IN_WEEK];
     size_t endedTrips[DAYS_IN_WEEK];
-    pStation aux = stations->firstAlpha;
-    while(aux != NULL){
-        countTrips();
-        aux=aux->tailAlpha;
+    pStation aux = stations->firstCount;
+    while(aux != NULL && aux->totalAmountRentals != 0){
+        countTrips(aux->oldestRental, startedTrips, endedTrips);
+        aux=aux->tailCount;
     }
     writeQ3(startedTrips,endedTrips);
 };

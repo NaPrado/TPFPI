@@ -329,7 +329,7 @@ static void writeQ2Rec(pStation stations, htmlTable tablaQ2, FILE * csvQ2){
     return;
 }
 //DD/MM/YYYY HH:mm
-static void query2(struct stationCDT * stations){
+void query2(struct stationCDT * stations){
     errno = 0;
     FILE * csvQ2 = fopen("query2.csv","wt");
     if(errno != 0 || csvQ2==NULL){
