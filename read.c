@@ -65,10 +65,7 @@ static void inicializerBikesMONFormat(char const *argv[],bst tree,stationADT sta
     free(s);
     while (!feof(bikesMON)){
     s=NULL;
-    if(getline(&s, &longitud, bikesMON)==-1){
-        perror("Ocurrio un error leyendo alguna linea del archivo de viajes realizados en Montreal\n");
-        exit (EXIT_FAILURE);
-    }
+    getline(&s, &longitud, bikesMON);
     struct tm startDate;
     struct tm endDate;
     int idStart, idEnd, isMember;
@@ -116,10 +113,7 @@ void inicializerMONFormat(char const * argv[],stationADT station){
         exit (EXIT_FAILURE);
     }
     while (!feof(stationsMON)){
-        if(getline(&s, &longitud, stationsMON)==-1){
-            perror("Ocurrio un error leyendo alguna linea del archivo de estaciones de Montreall\n");
-            exit (EXIT_FAILURE);
-        }
+        getline(&s, &longitud, stationsMON);
         int id;
         char * token=strtok(s,";");
         for (int q = 0; q < 4; q++) {
@@ -165,10 +159,7 @@ static void inicializerBikesNYCFormat(char const *argv[],bst tree,stationADT sta
     free(s);
     while (!feof(bikesNYC)){
         s=NULL;
-        if(getline(&s, &longitud, bikesNYC)==-1){
-            perror("Ocurrio un error leyendo alguna linea del archivo de viajes de Nueva York\n");
-            exit (EXIT_FAILURE);
-        }
+        getline(&s, &longitud, bikesNYC);
 
         struct tm startDate;
         struct tm endDate;
@@ -220,10 +211,7 @@ void inicializerNYCFormat(char const * argv[],stationADT station){
         exit (EXIT_FAILURE);
     }
     while (!feof(stationsNYC)){
-        if (getline(&s, &longitud, stationsNYC)==-1){
-            perror("Ocurrio un error leyendo alguna linea del archivo de estaciones de Nueva York\n");
-            exit (EXIT_FAILURE);
-        }
+        getline(&s, &longitud, stationsNYC);
         char * name;
         int id;
         char * token=strtok(s,";");

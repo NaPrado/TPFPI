@@ -7,7 +7,7 @@
 int main(int argc, char const *argv[])
 {
     time_t t=time(NULL);
-    if(argc != 2){
+    if(argc != 3){
         printf("cantidad de argumentos incorrectos\n");
         exit(EXIT_FAILURE);
     }
