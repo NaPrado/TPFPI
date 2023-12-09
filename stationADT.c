@@ -362,28 +362,9 @@ static void writeQ2Rec(pStation stations, htmlTable tablaQ2, FILE * csvQ2){
         }
         aux=aux->tailAlpha;
     }
-    
-    /* if (stations==NULL)
-        return;
-    if (stations->oldestRental==NULL){
-        writeQ2Rec(stations->tailAlpha,tablaQ2,csvQ2);
-        return;
-    }
-    pRental rent = checkIfCircular(stations->oldestRental,stations->stationName);
-    if (rent==NULL)
-    {
-        writeQ2Rec(stations->tailAlpha,tablaQ2,csvQ2);
-        return;
-    }
-    char * s=calloc(1,sizeof(char)*16);
-    strftime(s,16,"%d/%m/%Y %H:%M",rent->dateStart);
-    addHTMLRow(tablaQ2,stations->stationName,rent->stationNameEnd,s);
-    fprintf(csvQ2,"%s;%s;%s\n", stations->stationName, rent->stationNameEnd, s);
-    free(s);
-    writeQ2Rec(stations->tailAlpha,tablaQ2,csvQ2);
-    return; */
 }
-//DD/MM/YYYY HH:mm
+
+
 void query2(struct stationCDT * stations){
     errno = 0;
     FILE * csvQ2 = fopen("query2.csv","wt");

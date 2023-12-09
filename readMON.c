@@ -66,6 +66,7 @@ static void inicializerBikesMONFormat(char const *argv[],bst tree){
         exit (1);
     }
     free(s);
+    int c=0;
     while (!feof(bikesMON)){
     s=NULL;
     getline(&s, &longitud, bikesMON);
@@ -87,11 +88,14 @@ static void inicializerBikesMONFormat(char const *argv[],bst tree){
         endDate->tm_year=endDate->tm_year-1900;
         endDate->tm_mon=startDate->tm_mon-1;
 
-        if (result == 15) // La cadena se analizó correctamente, los valores están en las variables correspondientes.
+        if (result == 15){ // La cadena se analizó correctamente, los valores están en las variables correspondientes.
             addRental(tree,startDate,idStart,endDate,idEnd,isMember);
+            printf("cantidad de alquileres cargados %d\n",c);
+        }
         else if (result!=0)// Hubo un problema al analizar la cadena
             printf("Error al analizar la cadena\n");
         free(s);
+        c++;
     }
     fclose(bikesMON);
 }
@@ -112,6 +116,7 @@ void inicializerMONFormat(char const * argv[],stationADT station){
         perror("Ocurrio un error leyendo la primer linea del archivo de estaciones de Montreall\n");
         exit (1);
     }
+    int c=0;
     while (!feof(stationsMON)){
         getline(&s, &longitud, stationsMON);
         int id;
@@ -126,6 +131,7 @@ void inicializerMONFormat(char const * argv[],stationADT station){
                     case 1:
                         // leo el name
                         addStation(station,token,tree,id);
+                        printf("cantidad de estaciones cargadas %d\n",c);
                         break;
                     default:
                         break;
@@ -133,6 +139,7 @@ void inicializerMONFormat(char const * argv[],stationADT station){
             }
             token = strtok(NULL, ";");  // Mueve la llamada a strtok fuera del switch
         }
+        c++;
     }
     
     fclose(stationsMON);
