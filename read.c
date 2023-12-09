@@ -10,7 +10,7 @@
 #define MEMBER 1
 #define CASUAL 0 
 
-static __ssize_t getline(char **lineptr, size_t *n, FILE *stream) {
+static __ssize_t getLine(char **lineptr, size_t *n, FILE *stream) {
     if (*lineptr == NULL || *n == 0) {
         // Si no hay un búfer asignado o el tamaño es 0, asignar un nuevo búfer
         *n = 10; // Puedes ajustar el tamaño inicial según tus necesidades
@@ -58,14 +58,14 @@ static void inicializerBikesMONFormat(char const *argv[],bst tree,stationADT sta
     size_t longitud = 0;
     // Leer líneas desde el archivo
     errno=0;
-    if(getline(&s, &longitud, bikesMON)==-1){
+    if(getLine(&s, &longitud, bikesMON)==-1){
         perror("Ocurrio un error leyendo la primer linea del archivo de viajes realizados en Montreal\n");
         exit (EXIT_FAILURE);
     }
     free(s);
     while (!feof(bikesMON)){
     s=NULL;
-    getline(&s, &longitud, bikesMON);
+    getLine(&s, &longitud, bikesMON);
     struct tm startDate;
     struct tm endDate;
     int idStart, idEnd, isMember;
@@ -108,12 +108,12 @@ void inicializerMONFormat(char const * argv[],stationADT station){
     size_t longitud = 0;
     // Leer líneas desde el archivo
     errno=0;
-    if(getline(&s, &longitud, stationsMON)==-1){
+    if(getLine(&s, &longitud, stationsMON)==-1){
         perror("Ocurrio un error leyendo la primer linea del archivo de estaciones de Montreall\n");
         exit (EXIT_FAILURE);
     }
     while (!feof(stationsMON)){
-        getline(&s, &longitud, stationsMON);
+        getLine(&s, &longitud, stationsMON);
         int id;
         char * token=strtok(s,";");
         for (int q = 0; q < 4; q++) {
@@ -152,14 +152,14 @@ static void inicializerBikesNYCFormat(char const *argv[],bst tree,stationADT sta
     char * s = NULL;
     size_t longitud = 0;
     errno=0;
-    if(getline(&s, &longitud, bikesNYC)==-1){
+    if(getLine(&s, &longitud, bikesNYC)==-1){
         perror("Ocurrio un error leyendo la primer linea del archivo de viajes realizados en Nueva York\n");
         exit (EXIT_FAILURE);
     }
     free(s);
     while (!feof(bikesNYC)){
         s=NULL;
-        getline(&s, &longitud, bikesNYC);
+        getLine(&s, &longitud, bikesNYC);
 
         struct tm startDate;
         struct tm endDate;
@@ -206,12 +206,12 @@ void inicializerNYCFormat(char const * argv[],stationADT station){
     size_t longitud = 0;
     // Leer líneas desde el archivo
     errno=0;
-    if(getline(&s, &longitud, stationsNYC)==-1){
+    if(getLine(&s, &longitud, stationsNYC)==-1){
         perror("Ocurrio un error leyendo la primer linea del archivo de estaciones de Nueva York\n");
         exit (EXIT_FAILURE);
     }
     while (!feof(stationsNYC)){
-        getline(&s, &longitud, stationsNYC);
+        getLine(&s, &longitud, stationsNYC);
         char * name;
         int id;
         char * token=strtok(s,";");

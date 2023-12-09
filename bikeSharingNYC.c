@@ -6,7 +6,6 @@
 
 int main(int argc, char const *argv[])
 {
-    time_t t=time(NULL);
     if(argc != 3){
         printf("cantidad de argumentos incorrectos\n");
         exit(EXIT_FAILURE);
@@ -17,6 +16,5 @@ int main(int argc, char const *argv[])
     query2(new);
     query3(new);
     freeAssets(new);
-    printf("%ld\n",time(NULL)-t);
     return 0;
 }
