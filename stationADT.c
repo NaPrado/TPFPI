@@ -338,17 +338,32 @@ void query1(stationADT stations){
 
 
 static pRental checkIfCircular(pRental rent, char * currentStationName){
-    if (strcmp(currentStationName,rent->stationNameEnd)==0){
-        return checkIfCircular(rent->tail,currentStationName);
-    }
-    if (rent->tail==NULL){
+    if (rent==NULL){
         return NULL;
+    }
+    if (strcasecmp(currentStationName,rent->stationNameEnd)==0){
+        return checkIfCircular(rent->tail,currentStationName);
     }
     return rent;
 }
 
 static void writeQ2Rec(pStation stations, htmlTable tablaQ2, FILE * csvQ2){
-    if (stations==NULL)
+    pStation aux=stations;
+    while (aux!=NULL)
+    {
+        pRental rent = checkIfCircular(aux->oldestRental,stations->stationName);
+        if (rent!=NULL)
+        {
+            char * s=calloc(1,sizeof(char)*20);
+            strftime(s,20,"%d/%m/%Y %H:%M",rent->dateStart);
+            addHTMLRow(tablaQ2,aux->stationName,rent->stationNameEnd,s);
+            fprintf(csvQ2,"%s;%s;%s\n", aux->stationName, rent->stationNameEnd, s);
+            free(s);
+        }
+        aux=aux->tailAlpha;
+    }
+    
+    /* if (stations==NULL)
         return;
     if (stations->oldestRental==NULL){
         writeQ2Rec(stations->tailAlpha,tablaQ2,csvQ2);
@@ -366,7 +381,7 @@ static void writeQ2Rec(pStation stations, htmlTable tablaQ2, FILE * csvQ2){
     fprintf(csvQ2,"%s;%s;%s\n", stations->stationName, rent->stationNameEnd, s);
     free(s);
     writeQ2Rec(stations->tailAlpha,tablaQ2,csvQ2);
-    return;
+    return; */
 }
 //DD/MM/YYYY HH:mm
 void query2(struct stationCDT * stations){
@@ -430,12 +445,12 @@ static void writeQ3(size_t startedTrips[DAYS_IN_WEEK], size_t endedTrips[DAYS_IN
 }
 
 void query3(stationADT stations){
-    size_t startedTrips[DAYS_IN_WEEK];
-    size_t endedTrips[DAYS_IN_WEEK];
-    pStation aux = stations->firstCount;
-    while(aux != NULL && aux->totalAmountRentals != 0){
+    size_t startedTrips[DAYS_IN_WEEK]={0};
+    size_t endedTrips[DAYS_IN_WEEK]={0};
+    pStation aux = stations->firstAlpha;
+    while(aux != NULL){
         countTrips(aux->oldestRental, startedTrips, endedTrips);
-        aux=aux->tailCount;
+        aux=aux->tailAlpha;
     }
     writeQ3(startedTrips,endedTrips);
 }
