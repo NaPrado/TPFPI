@@ -19,7 +19,7 @@ void orderByCount(stationADT stations);
 
 void addStation(stationADT station,char * stationName, bst rootbst, size_t stationId);
 
-void addRental(bst idBST, struct tm * startDate,size_t startId,struct tm * endDate, size_t endId, char association, stationADT station);
+void addRental(bst idBST, struct tm startDate,size_t startId,struct tm endDate, size_t endId, char association, stationADT station);
 
 void query1(stationADT stations);
 

@@ -5,7 +5,6 @@
 #include <strings.h>
 #include <errno.h>
 #include <math.h>
-//#include <stdbool.h>
 #include "stationADT.h"
 #include "readNYC.h"
 
@@ -30,8 +29,8 @@ static __ssize_t getline(char **lineptr, size_t *n, FILE *stream) {
             *n *= 2; // Duplicar el tamaño del búfer
             char *new_lineptr = (char *)realloc(*lineptr, *n);
             if (new_lineptr == NULL) {
-                free(*lineptr);
-                return -1; // Error de realocación de memoria
+                free(*lineptr); //NO SE SI ES NECESARIO
+                return -1; 
             }
             *lineptr = new_lineptr;
         }
@@ -42,16 +41,16 @@ static __ssize_t getline(char **lineptr, size_t *n, FILE *stream) {
         return -1; // No se leyó ninguna línea y se alcanzó el final del archivo
     }
 
-    (*lineptr)[pos] = '\0'; // Agregar el carácter nulo al final de la línea
-    return pos; // Devolver el número de caracteres leídos
+    (*lineptr)[pos] = '\0'; 
+    return pos; 
 }
 
-static void inicializerBikesNYCFormat(char const *argv[],stationADT newStation,stationsIdBST tree){
+static void inicializerBikesNYCFormat(char const *argv[],stationsIdBST tree,stationADT station){
     errno=0;
     FILE * bikesNYC = fopen( argv[1], "rt");
     if(errno != 0 && bikesNYC==NULL){
         perror("Ocurrio un error mientrar se abria el archivo de viajes realizados en Nueva York\n");
-        exit (1);
+        exit (EXIT_FAILURE);
     }
     
     char * s = NULL;
@@ -59,14 +58,19 @@ static void inicializerBikesNYCFormat(char const *argv[],stationADT newStation,s
     errno=0;
     if(getline(&s, &longitud, bikesNYC)==-1){
         perror("Ocurrio un error leyendo la primer linea del archivo de viajes realizados en Nueva York\n");
-        exit (1);
+        exit (EXIT_FAILURE);
     }
     free(s);
     while (!feof(bikesNYC)){
         s=NULL;
-        getline(&s, &longitud, bikesNYC);
+        getline(&s, &longitud, bikesNYC); //VER SI ES POSIBLE Q FALLE
         struct tm * startDate=calloc(1,sizeof(struct tm));
         struct tm * endDate=calloc(1,sizeof(struct tm));
+        if(startDate == NULL || endDate == NULL){
+            printf("Error al allocar memoria\n");
+            exit(EXIT_FAILURE);
+        }
+
         int idStart, idEnd;
         char isMember;
                 // Formato: yyyy-mm-dd HH:mm:ss;idStart;yyyy-mm-dd HH:mm:ss;idEnd;rideable_type;member_casual
@@ -83,7 +87,7 @@ static void inicializerBikesNYCFormat(char const *argv[],stationADT newStation,s
                         
         if (result == 15) {
             // La cadena se analizó correctamente, los valores están en las variables correspondientes.
-            addRental(tree,startDate,idStart,endDate,idEnd,isMember);
+            addRental(tree,startDate,idStart,endDate,idEnd,isMember,station);
         } else {
             // Hubo un problema al analizar la cadena
             printf("Error al analizar la cadena\n");
@@ -98,16 +102,16 @@ void inicializerNYCFormat(char const * argv[],stationADT station){
     errno = 0;
     FILE * stationsNYC = fopen( argv[2], "rt");
     if(errno != 0 || stationsNYC==NULL){
-        perror("Ocurrio un error mientrar se abria el archivo de las estaciones de Montreal\n");
-        exit (1);
+        perror("Ocurrio un error mientrar se abria el archivo de las estaciones de Nueva York\n");
+        exit (EXIT_FAILURE);
     }
     char * s = NULL;
     size_t longitud = 0;
     // Leer líneas desde el archivo
     errno=0;
     if(getline(&s, &longitud, stationsNYC)==-1){
-        perror("Ocurrio un error leyendo la primer linea del archivo de estaciones de Montreall\n");
-        exit (1);
+        perror("Ocurrio un error leyendo la primer linea del archivo de estaciones de Nueva York\n");
+        exit (EXIT_FAILURE);
     }
     while (!feof(stationsNYC)){
         getline(&s, &longitud, stationsNYC);
@@ -138,4 +142,3 @@ void inicializerNYCFormat(char const * argv[],stationADT station){
     orderByCount(station);
     freeTree(tree);
 }
-
