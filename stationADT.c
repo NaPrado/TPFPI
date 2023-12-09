@@ -6,17 +6,11 @@
 #include <errno.h>
 #include <math.h>
 #include "htmlTable.h"  
-//#include <stdbool.h>
 #include "stationADT.h"
 
-
-
-#define BLOQUECHARS 10
 #define MEMBER 1
 #define CASUAL 0 
 #define DAYS_IN_WEEK 7
-
-
 
 enum DAYS           
 {     
@@ -29,55 +23,33 @@ enum DAYS
     sunday,
 } workday;
 
-
-
-
-// el tipo de dato es el mismo tanto para stationsNYC como stationsMON, lo que cambia es como obtenemos esos datos;
-
-/* 
-    Info importante de cada archivo
-    Para bikes:
-        start_date;emplacement_pk_start;end_date;emplacement_pk_end;is_member
-        2021-09-20 06:31:28;348;2021-09-20 07:02:22;332;1
-    Para stations:
-        pk;name;latitude;longitude
-        327;Sanguinet / de Maisonneuve;45.513405;-73.562594
-*/
-
-// ---------------------------------IDEA-----------------------------------------
-// proponemos que el cdt contenga dos cosas primero dos listas de estaciones (alfabetico, cantidad viajes iniciados)
-// segundo un arbol de ids
-// esto con el proposito de que primero se cargan las informaciones de las estaciones existentes del archivo stations
-// a su vez se iran cargando en paralelo las ids existentes de cada estacion a un arbol binario de busqueda 
-// segundo se va copiar los viajes en el nodo de cada estacion si las estaciones de salida y llegada son validas (osea estan en el arbol)
-
 typedef struct rental * pRental ;
-struct rental //datos del archivo Bike se guardaran en formato de lista ordenada por stationIdStart 
+struct rental 
 {
     struct tm dateStart;
     char * stationNameEnd;
     struct tm dateEnd;
 };
 
-struct station //lista
+struct station 
 {
     char * stationName;
     pRental oldestRental;
-    size_t amountRentalsByMembers;  //contadores para q1
-    size_t amountRentalsByCasuals;  //contadores para q1
-    size_t totalAmountRentals;      //contadores para q1
+    size_t amountRentalsByMembers;
+    size_t amountRentalsByCasuals;
+    size_t totalAmountRentals;
     struct station * tailAlpha;
-    struct station * tailCount;             //util para q1
+    struct station * tailCount;
 };
 
 struct stationCDT
 {
     size_t startedTrips[DAYS_IN_WEEK];
     size_t endedTrips[DAYS_IN_WEEK];
-    pStation firstAlpha;//lista estaciones orden alfabetico (puntero a primer nodo)
-    pStation firstCount;//lista oredenada segun cantidad de viajes iniciados en esa estacion
+    pStation firstAlpha;
+    pStation firstCount;
 };                              
-struct stationsIdNode{ //arbol binario de busqueda basado en cada id de estacion
+struct stationsIdNode{
     size_t stationId;
     pStation associatedStation;
     struct stationsIdNode *  left;
@@ -88,7 +60,7 @@ struct bst {
 	stationsIdBST root;	    // raíz del arbol
 };
 
-char* copyString(const char * origin) {
+static char* copyString(const char * origin) {
     // Obtener la longitud de la cadena de origen
     size_t length = strlen(origin);
 
@@ -116,9 +88,6 @@ stationADT newStation(void){
     return calloc(1,sizeof(struct stationCDT));
 }
 
-
-
-
 static stationsIdBST addToTreeRec(stationsIdBST root, size_t id, struct station * associatedStation){
     if (root == NULL){
         stationsIdBST aux =calloc(1,sizeof(struct stationsIdNode));
@@ -127,13 +96,11 @@ static stationsIdBST addToTreeRec(stationsIdBST root, size_t id, struct station 
         return aux;
     }
     int c=(root->stationId - id);
-    if (c < 0)
-    {
-        root->right=addToTreeRec(root->right,id,associatedStation);
+    if (c < 0){
+        root->right = addToTreeRec(root->right,id,associatedStation);
     }
-    else if (c>0)
-    {
-        root->left =addToTreeRec(root->left,id,associatedStation);
+    else if (c>0){
+        root->left = addToTreeRec(root->left,id,associatedStation);
     }
     return root;
 }
@@ -145,17 +112,18 @@ static void addToTree(bst bst, size_t id, struct station * associatedStation){
 
 static pStation addStationRec(pStation alphaList,char * stationName, bst rootbst, size_t stationId){
     int c;
-    if(alphaList == NULL ||  (c=strcasecmp(alphaList->stationName, stationName)) > 0){//si llegue al final o era vacia o tengo que añadir añado
+    if(alphaList == NULL ||  (c=strcasecmp(alphaList->stationName, stationName)) > 0){
         //incorporacion a la lista
         pStation newNode = calloc(1,sizeof(struct station));
-        newNode->stationName = stationName; //ver si anda.
+        newNode->stationName = stationName;
         newNode->tailAlpha =alphaList;
         //incorporacion a el BST
         addToTree(rootbst,stationId,newNode);
         return newNode;
     }
-    if(c<0)
+    if(c<0){
         alphaList->tailAlpha=addStationRec(alphaList->tailAlpha,stationName,rootbst,stationId);
+    }
     return alphaList;
 }
 
@@ -170,37 +138,34 @@ static void * isValidId(size_t id, stationsIdBST root){
         return NULL;
     }
     int c;
-    if((c=root->stationId-id)>0)
+    if((c=root->stationId-id)>0){
         return isValidId(id,root->left);
-    if(c<0)
+    }
+    if(c<0){
         return isValidId(id,root->right);
+    }
     return root->associatedStation;
 }
 
-
 static int getWeekDay(int day,int month,int year){
     int weekday  = (day += month < 3 ? year-- : year - 2, 23*month/9 + day + 4 + year/4- year/100 + year/400)%7;
-    if (weekday==0)
-    {
+    if (weekday==0){
         return sunday;
     }
-    else
+    else{
         return weekday-1;
+    }
 }
 
-
-
 static void countTrips(stationADT station,struct tm startDate,struct tm endDate){
-        station->startedTrips[getWeekDay(startDate.tm_mday,startDate.tm_mon+1,startDate.tm_year+1900)]++;
-        station->endedTrips[getWeekDay(endDate.tm_mday,endDate.tm_mon+1,endDate.tm_year+1900)]++;
+    station->startedTrips[getWeekDay(startDate.tm_mday,startDate.tm_mon+1,startDate.tm_year+1900)]++;
+    station->endedTrips[getWeekDay(endDate.tm_mday,endDate.tm_mon+1,endDate.tm_year+1900)]++;
     return;
 }
 
-
 void addRental(bst idBST, struct tm startDate,size_t startId,struct tm endDate, size_t endId, char association, stationADT station){
     pStation startStation,endStation;
-    if ((startStation = isValidId(startId,idBST->root))==NULL||(endStation = isValidId(endId,idBST->root))==NULL)
-    {
+    if ((startStation = isValidId(startId,idBST->root))==NULL||(endStation = isValidId(endId,idBST->root))==NULL){
         return;
     }
     
@@ -213,12 +178,10 @@ void addRental(bst idBST, struct tm startDate,size_t startId,struct tm endDate, 
         startStation->amountRentalsByCasuals += 1;
     }
 
-    if (startId==endId)
-    {
+    if (startId==endId){
         return;
     }
-    else if (startStation->oldestRental==NULL || difftime(mktime(&startDate),mktime(&(startStation->oldestRental->dateStart))) < 0 )
-    {
+    else if (startStation->oldestRental==NULL || difftime(mktime(&startDate),mktime(&(startStation->oldestRental->dateStart))) < 0 ){
             pRental newRental=calloc(1,sizeof(struct rental));
             newRental->dateEnd=endDate;
             newRental->dateStart=startDate;
@@ -243,8 +206,7 @@ void freeTree(bst root){
 }   
 
 static void freeRentals(pStation station){
-    if (station==NULL||station->oldestRental==NULL)
-    {
+    if (station==NULL||station->oldestRental==NULL){
         return;
     }
         free(station->oldestRental);
@@ -262,7 +224,6 @@ static void freeStations(pStation stationList){
 }
 
 void freeAssets(stationADT stations){
-    //lista de cosas a liberar: el adt,cada estacion,cada rental,cada nombre
     freeStations(stations->firstAlpha);
     free(stations);
 }
@@ -300,7 +261,7 @@ void orderByCount(stationADT stations){
     return;
 }
 
-int countDigit(int num) {
+static int countDigit(int num) {
     int count = 0;
 
     // Manejar caso especial para el número 0
@@ -318,8 +279,9 @@ int countDigit(int num) {
 }
 
 static void writeQ1Rec(pStation stations, htmlTable tablaQ1, FILE * csvQ1){
-    if (stations==NULL)
+    if (stations==NULL){
         return;
+    }
     char * members=calloc(1,sizeof(char)*(countDigit(stations->amountRentalsByMembers)+1));
     char *casuals=calloc(1,sizeof(char)*(countDigit(stations->amountRentalsByCasuals)+1));
     char *total=calloc(1,sizeof(char)*(countDigit(stations->totalAmountRentals)+1));
@@ -341,18 +303,15 @@ void query1(stationADT stations){
     FILE * csvQ1 = fopen("query1.csv","wt");
     if(errno != 0 || csvQ1==NULL){
         perror("Ocurrio un error mientrar se creaba el archivo \"query1.csv\" \n");
-        exit (1);
+        exit (EXIT_FAILURE);
     }
     fprintf(csvQ1,"bikeStation;memberTrips;casualTrips;allTrips\n");
     htmlTable tablaQ1 = newTable("query1.html",4,"bikeStation","memberTrips","casualTrips","allTrips");
     
-    writeQ1Rec(getNodeWithMaxRentals(stations->firstAlpha),tablaQ1,csvQ1);//funcion recursva o iterativa que carga tanto html como csv
+    writeQ1Rec(getNodeWithMaxRentals(stations->firstAlpha),tablaQ1,csvQ1);
     closeHTMLTable(tablaQ1);
     fclose(csvQ1);
 }
-
-
-
 
 static void writeQ2Rec(pStation stations, htmlTable tablaQ2, FILE * csvQ2){
     pStation aux=stations;
@@ -371,22 +330,19 @@ static void writeQ2Rec(pStation stations, htmlTable tablaQ2, FILE * csvQ2){
     }
 }
 
-
 void query2(struct stationCDT * stations){
     errno = 0;
     FILE * csvQ2 = fopen("query2.csv","wt");
     if(errno != 0 || csvQ2==NULL){
         perror("Ocurrio un error mientrar se creaba el archivo \"query1.csv\" \n");
-        exit (1);
+        exit (EXIT_FAILURE);
     }
     fputs("bikeStation;bikeEndStation;oldestDateTime\n",csvQ2);
     htmlTable tablaQ2 = newTable("query2.html",3,"bikeStation","bikeEndStation","oldestDateTime");
-    writeQ2Rec(stations->firstAlpha,tablaQ2,csvQ2);//funcion recursva o iterativa que carga tanto html como csv
+    writeQ2Rec(stations->firstAlpha,tablaQ2,csvQ2);
     closeHTMLTable(tablaQ2);
     fclose(csvQ2);
 }
-
-
 
 void query3(stationADT stations){
     size_t * startedTrips=stations->startedTrips;
@@ -396,20 +352,18 @@ void query3(stationADT stations){
     FILE * csvQ3 = fopen("query3.csv","wt");
     if(errno != 0 || csvQ3==NULL){
         perror("Ocurrio un error mientrar se creaba el archivo \"query1.csv\" \n");
-        exit (1);
+        exit (EXIT_FAILURE);
     }
     fputs("weekDay;startedTrips;endedTrips\n",csvQ3);
     htmlTable tablaQ3 = newTable("query3.html",3,"weekDay","startedTrips","endedTrips");
     for (size_t i = monday; i < DAYS_IN_WEEK; i++)
     {
         fprintf(csvQ3,"%s;%lu;%lu\n",*(weekDays+i),startedTrips[i],endedTrips[i]);
-        char sT[30]/* =malloc(countDigit(startedTrips[i])+1) */;
-        char eT[30]/* =malloc(countDigit(endedTrips[i])+1) */;
+        char sT[30];
+        char eT[30];
         sprintf(sT,"%lu",startedTrips[i]);
         sprintf(eT,"%lu",endedTrips[i]);
         addHTMLRow(tablaQ3,*(weekDays+i),sT,eT);
-        /* free(sT);
-        free(eT); */
     }
     closeHTMLTable(tablaQ3);
     fclose(csvQ3);

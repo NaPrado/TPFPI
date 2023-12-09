@@ -39,7 +39,6 @@ static __ssize_t getline(char **lineptr, size_t *n, FILE *stream) {
     }
 
     if (pos == 0 && c == EOF) {
-        //free(*lineptr);
         return -1; // No se leyó ninguna línea y se alcanzó el final del archivo
     }
 
@@ -52,7 +51,7 @@ static void inicializerBikesMONFormat(char const *argv[],bst tree,stationADT sta
     FILE * bikesMON = fopen( argv[1], "rt");
     if(errno != 0 && bikesMON==NULL){
         perror("Ocurrio un error mientrar se abria el archivo de viajes realizados en Montreal\n");
-        exit (1);
+        exit (EXIT_FAILURE);
     }
     
     char * s = NULL;
@@ -61,12 +60,15 @@ static void inicializerBikesMONFormat(char const *argv[],bst tree,stationADT sta
     errno=0;
     if(getline(&s, &longitud, bikesMON)==-1){
         perror("Ocurrio un error leyendo la primer linea del archivo de viajes realizados en Montreal\n");
-        exit (1);
+        exit (EXIT_FAILURE);
     }
     free(s);
     while (!feof(bikesMON)){
     s=NULL;
-    getline(&s, &longitud, bikesMON);
+    if(getline(&s, &longitud, bikesMON)==-1){
+        perror("Ocurrio un error leyendo alguna linea del archivo de viajes realizados en Montreal\n");
+        exit (EXIT_FAILURE);
+    }
     struct tm startDate;
     struct tm endDate;
     int idStart, idEnd, isMember;
@@ -89,8 +91,9 @@ static void inicializerBikesMONFormat(char const *argv[],bst tree,stationADT sta
         if (result == 15){ // La cadena se analizó correctamente, los valores están en las variables correspondientes.
             addRental(tree,startDate,idStart,endDate,idEnd,isMember,station);
         }
-        else if (result!=0)// Hubo un problema al analizar la cadena
+        else if (result!=0){// Hubo un problema al analizar la cadena
             printf("Error al analizar la cadena\n");
+        }
         free(s);
     }
     fclose(bikesMON);
@@ -102,7 +105,7 @@ void inicializerMONFormat(char const * argv[],stationADT station){
     FILE * stationsMON = fopen( argv[2], "rt");
     if(errno != 0 || stationsMON==NULL){
         perror("Ocurrio un error mientrar se abria el archivo de las estaciones de Montreal\n");
-        exit (1);
+        exit (EXIT_FAILURE);
     }
     char * s = NULL;
     size_t longitud = 0;
@@ -110,10 +113,13 @@ void inicializerMONFormat(char const * argv[],stationADT station){
     errno=0;
     if(getline(&s, &longitud, stationsMON)==-1){
         perror("Ocurrio un error leyendo la primer linea del archivo de estaciones de Montreall\n");
-        exit (1);
+        exit (EXIT_FAILURE);
     }
     while (!feof(stationsMON)){
-        getline(&s, &longitud, stationsMON);
+        if(getline(&s, &longitud, stationsMON)==-1){
+            perror("Ocurrio un error leyendo alguna linea del archivo de estaciones de Montreall\n");
+            exit (EXIT_FAILURE);
+        }
         int id;
         char * token=strtok(s,";");
         for (int q = 0; q < 4; q++) {
@@ -159,7 +165,11 @@ static void inicializerBikesNYCFormat(char const *argv[],bst tree,stationADT sta
     free(s);
     while (!feof(bikesNYC)){
         s=NULL;
-        getline(&s, &longitud, bikesNYC); //VER SI ES POSIBLE Q FALLE
+        if(getline(&s, &longitud, bikesNYC)==-1){
+            perror("Ocurrio un error leyendo alguna linea del archivo de viajes de Nueva York\n");
+            exit (EXIT_FAILURE);
+        }
+
         struct tm startDate;
         struct tm endDate;
         int idStart, idEnd;
@@ -179,14 +189,15 @@ static void inicializerBikesNYCFormat(char const *argv[],bst tree,stationADT sta
         startDate.tm_mon=startDate.tm_mon-1, 
         endDate.tm_year=endDate.tm_year-1900;
         endDate.tm_mon=startDate.tm_mon-1;
-        isMember=(isMember=='m')?1:0;
+        isMember=(isMember=='m')?MEMBER:CASUAL;
 
         if (result == 15) {
             // La cadena se analizó correctamente, los valores están en las variables correspondientes.
             addRental(tree,startDate,idStart,endDate,idEnd,isMember,station);
         } 
-        else if (result!=0)// Hubo un problema al analizar la cadena
+        else if (result!=0){// Hubo un problema al analizar la cadena
             printf("Error al analizar la cadena\n");
+        }
         free(s);
     }
     fclose(bikesNYC);
@@ -209,7 +220,10 @@ void inicializerNYCFormat(char const * argv[],stationADT station){
         exit (EXIT_FAILURE);
     }
     while (!feof(stationsNYC)){
-        getline(&s, &longitud, stationsNYC);
+        if (getline(&s, &longitud, stationsNYC)==-1){
+            perror("Ocurrio un error leyendo alguna linea del archivo de estaciones de Nueva York\n");
+            exit (EXIT_FAILURE);
+        }
         char * name;
         int id;
         char * token=strtok(s,";");
