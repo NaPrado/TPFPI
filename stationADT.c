@@ -57,13 +57,14 @@ struct rental //datos del archivo Bike se guardaran en formato de lista ordenada
     struct tm * dateStart;
     char * stationNameEnd;
     struct tm * dateEnd;
-    pRental tail;
 };
 
 struct station //lista
 {
     char * stationName;
-    pRental oldestRental; //lista
+    pRental * rentals;
+    pRental oldestRental;
+    size_t size;
     size_t amountRentalsByMembers;  //contadores para q1
     size_t amountRentalsByCasuals;  //contadores para q1
     size_t totalAmountRentals;      //contadores para q1
@@ -73,6 +74,8 @@ struct station //lista
 
 struct stationCDT
 {
+    size_t startedTrips[DAYS_IN_WEEK];
+    size_t endedTrips[DAYS_IN_WEEK];
     pStation firstAlpha;//lista estaciones orden alfabetico (puntero a primer nodo)
     pStation firstCount;//lista oredenada segun cantidad de viajes iniciados en esa estacion
 };                              
@@ -176,22 +179,27 @@ static void * isValidId(size_t id, stationsIdBST root){
     return root->associatedStation;
 }
 
-static pRental addRentalRec(pRental rentalList, struct tm * startDate, struct tm * endDate, char * endStationName){
-    double cmp;
-    if(rentalList == NULL || (cmp = difftime(mktime(startDate),mktime(rentalList->dateStart))) > 0){
-        pRental newRental = malloc(sizeof(struct rental));
-        newRental->dateEnd=endDate;
-        newRental->dateStart=startDate;
-        newRental->stationNameEnd=endStationName;
-        newRental->tail=rentalList;
-        return newRental;
+
+static int getWeekDay(int day,int month,int year){
+    int weekday  = (day += month < 3 ? year-- : year - 2, 23*month/9 + day + 4 + year/4- year/100 + year/400)%7;
+    if (weekday==0)
+    {
+        return sunday;
     }
-    if(cmp<0)
-        rentalList->tail = addRentalRec(rentalList->tail, startDate, endDate, endStationName);
-    return rentalList;
+    else
+        return weekday-1;
 }
 
-void addRental(bst idBST, struct tm * startDate,size_t startId,struct tm * endDate, size_t endId, char association){
+
+
+static void countTrips(pRental * rentals, size_t * startedTrips, size_t * endedTrips, size_t dim){
+        startedTrips[getWeekDay(rentals[i]->dateStart->tm_mday,rentals[i]->dateStart->tm_mon+1,rentals[i]->dateStart->tm_year+1900)]+=1;
+        endedTrips[getWeekDay(rentals[i]->dateEnd->tm_mday,rentals[i]->dateEnd->tm_mon+1,rentals[i]->dateEnd->tm_year+1900)]+=1;
+    return;
+}
+
+
+void addRental(bst idBST, struct tm * startDate,size_t startId,struct tm * endDate, size_t endId, char association, stationADT station){
     pStation startStation = isValidId(startId,idBST->root);
     if(startStation==NULL)
         return;
@@ -199,8 +207,20 @@ void addRental(bst idBST, struct tm * startDate,size_t startId,struct tm * endDa
     if(endStation==NULL)
         return;
 
+    
+    startStation->size++;
+    startStation->rentals=realloc(startStation->rentals,sizeof(pRental)*startStation->size);
+    pRental newRental=calloc(1,sizeof(struct rental));
+    newRental->dateEnd=endDate;
+    newRental->dateStart=startDate;
+    newRental->stationNameEnd=endStation->stationName;
+    startStation->rentals[startStation->size-1]=newRental;
+    if ((startStation->oldestRental==NULL || (difftime(mktime(startDate),mktime(newRental->dateStart))) < 0 )&& strcasecmp(startStation->stationName,newRental->stationNameEnd))
+    {
+        startStation->oldestRental=newRental;
+    }
+    countTrips(,startStation, endedTrips,aux->size);
     startStation->totalAmountRentals += 1;
-    startStation->oldestRental = addRentalRec(startStation->oldestRental, startDate, endDate, endStation->stationName);
     if(association == MEMBER){
         startStation->amountRentalsByMembers += 1;
     }
@@ -223,16 +243,13 @@ void freeTree(bst root){
     free(root);
 }   
 
-static void freeRentals(pRental rentalList){
-    if(rentalList == NULL){
-        return;
+static void freeRentals(pStation station){
+    for(int i = 0; i<station->size; i++){
+        free(station->rentals[i]->dateEnd);
+        free(station->rentals[i]->dateStart);
+        free(station->rentals[i]);
     }
-    free(rentalList->dateEnd);
-    free(rentalList->dateStart);
-//    free(rentalList->stationNameEnd);
-    freeRentals(rentalList->tail);
-    free(rentalList);
-    return;
+    free(station->rentals);
 }
 
 static void freeStations(pStation stationList){
@@ -241,7 +258,7 @@ static void freeStations(pStation stationList){
     }
     freeStations(stationList->tailAlpha);
     free(stationList->stationName);
-    freeRentals(stationList->oldestRental);
+    freeRentals(stationList);
     free(stationList);
     return;
 }
@@ -337,21 +354,13 @@ void query1(stationADT stations){
 }
 
 
-static pRental checkIfCircular(pRental rent, char * currentStationName){
-    if (rent==NULL){
-        return NULL;
-    }
-    if (strcasecmp(currentStationName,rent->stationNameEnd)==0){
-        return checkIfCircular(rent->tail,currentStationName);
-    }
-    return rent;
-}
+
 
 static void writeQ2Rec(pStation stations, htmlTable tablaQ2, FILE * csvQ2){
     pStation aux=stations;
     while (aux!=NULL)
     {
-        pRental rent = checkIfCircular(aux->oldestRental,stations->stationName);
+        pRental rent = aux->oldestRental;
         if (rent!=NULL)
         {
             char * s=calloc(1,sizeof(char)*20);
@@ -379,26 +388,7 @@ void query2(struct stationCDT * stations){
     fclose(csvQ2);
 }
 
-static int getWeekDay(int day,int month,int year){
-    int weekday  = (day += month < 3 ? year-- : year - 2, 23*month/9 + day + 4 + year/4- year/100 + year/400)%7;
-    if (weekday==0)
-    {
-        return sunday;
-    }
-    else
-        return weekday-1;
-}
 
-
-
-static void countTrips(pRental rentalList, size_t startedTrips[DAYS_IN_WEEK], size_t endedTrips[DAYS_IN_WEEK]){
-    while(rentalList != NULL){
-        startedTrips[getWeekDay(rentalList->dateStart->tm_mday,rentalList->dateStart->tm_mon+1,rentalList->dateStart->tm_year+1900)]++;
-        endedTrips[getWeekDay(rentalList->dateEnd->tm_mday,rentalList->dateEnd->tm_mon+1,rentalList->dateEnd->tm_year+1900)]++;
-        rentalList=rentalList->tail;
-    }
-    return;
-}
 
 static void writeQ3(size_t startedTrips[DAYS_IN_WEEK], size_t endedTrips[DAYS_IN_WEEK]){
     char * weekDays[]={"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};
@@ -426,11 +416,9 @@ static void writeQ3(size_t startedTrips[DAYS_IN_WEEK], size_t endedTrips[DAYS_IN
 }
 
 void query3(stationADT stations){
-    size_t startedTrips[DAYS_IN_WEEK]={0};
-    size_t endedTrips[DAYS_IN_WEEK]={0};
     pStation aux = stations->firstAlpha;
     while(aux != NULL){
-        countTrips(aux->oldestRental, startedTrips, endedTrips);
+        
         aux=aux->tailAlpha;
     }
     writeQ3(startedTrips,endedTrips);

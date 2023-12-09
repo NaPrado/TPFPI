@@ -49,7 +49,7 @@ static __ssize_t getline(char **lineptr, size_t *n, FILE *stream) {
     return pos; // Devolver el número de caracteres leídos
 }
 
-static void inicializerBikesMONFormat(char const *argv[],bst tree){
+static void inicializerBikesMONFormat(char const *argv[],bst tree,stationADT station){
     errno=0;
     FILE * bikesMON = fopen( argv[1], "rt");
     if(errno != 0 && bikesMON==NULL){
@@ -89,7 +89,7 @@ static void inicializerBikesMONFormat(char const *argv[],bst tree){
         endDate->tm_mon=startDate->tm_mon-1;
 
         if (result == 15){ // La cadena se analizó correctamente, los valores están en las variables correspondientes.
-            addRental(tree,startDate,idStart,endDate,idEnd,isMember);
+            addRental(tree,startDate,idStart,endDate,idEnd,isMember,station);
             printf("cantidad de alquileres cargados %d\n",c);
         }
         else if (result!=0)// Hubo un problema al analizar la cadena
@@ -143,7 +143,7 @@ void inicializerMONFormat(char const * argv[],stationADT station){
     }
     
     fclose(stationsMON);
-    inicializerBikesMONFormat(argv,tree);
+    inicializerBikesMONFormat(argv,tree,station);
     orderByCount(station);
     freeTree(tree);
 }
