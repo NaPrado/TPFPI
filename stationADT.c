@@ -3,8 +3,6 @@
 #include <time.h>
 #include <string.h>
 #include <strings.h>
-#include <errno.h>
-#include <math.h>
 #include "htmlTable.h"  
 #include "stationADT.h"
 

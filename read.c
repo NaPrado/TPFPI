@@ -2,9 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
-#include <strings.h>
 #include <errno.h>
-#include <math.h>
 #include "stationADT.h"
 
 #define MEMBER 1
