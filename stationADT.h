@@ -2,6 +2,7 @@
 #define __stationADT_h_
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 typedef struct stationCDT * stationADT; 
 typedef struct stationsIdNode *stationsIdBST;
 typedef struct station * pStation ;
