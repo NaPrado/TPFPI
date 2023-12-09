@@ -19,14 +19,14 @@
 
 
 enum DAYS           
-{
-    saturday,     
-    sunday,     
+{     
     monday,       
     tuesday,
     wednesday,     
     thursday,
-    friday
+    friday,
+    saturday,     
+    sunday,
 } workday;
 
 
@@ -164,37 +164,21 @@ void addStation(stationADT station,char * stationName, bst rootbst, size_t stati
     return;
 }
 
-static char isValidIdRec(size_t id, stationsIdBST root, pStation * correctStation){
+static void * isValidId(size_t id, stationsIdBST root){
     if(root == NULL){
-        return 0;
+        return NULL;
     }
-    else{
-        if(root->stationId == id){
-            *correctStation = root->associatedStation;
-            return 1;
-        }
-        else{
-            if(id < root->stationId){
-                return isValidIdRec(id,root->left, correctStation);
-            }
-            else{
-                return isValidIdRec(id,root->right, correctStation);
-            }
-        }
-    }
-}
-
-static char isValidId(size_t id, bst root, pStation * correctStation){
-    return isValidIdRec(id,root->root,correctStation);
-}
-
-static char isValidRental(size_t startStationId, size_t endStationId, bst idBst, pStation * startStation, pStation * endStation){
-    return (isValidId(startStationId, idBst, startStation) && isValidId(endStationId, idBst, endStation));;
+    int c;
+    if((c=root->stationId-id)>0)
+        return isValidId(id,root->left);
+    if(c<0)
+        return isValidId(id,root->right);
+    return root->associatedStation;
 }
 
 static pRental addRentalRec(pRental rentalList, struct tm * startDate, struct tm * endDate, char * endStationName){
     double cmp;
-    if(rentalList == NULL || (cmp = difftime(mktime(startDate),mktime(rentalList->dateStart))) < 0){
+    if(rentalList == NULL || (cmp = difftime(mktime(startDate),mktime(rentalList->dateStart))) > 0){
         pRental newRental = malloc(sizeof(struct rental));
         newRental->dateEnd=endDate;
         newRental->dateStart=startDate;
@@ -202,15 +186,19 @@ static pRental addRentalRec(pRental rentalList, struct tm * startDate, struct tm
         newRental->tail=rentalList;
         return newRental;
     }
-    rentalList->tail = addRentalRec(rentalList->tail, startDate, endDate, endStationName);
+    if(cmp<0)
+        rentalList->tail = addRentalRec(rentalList->tail, startDate, endDate, endStationName);
     return rentalList;
 }
 
 void addRental(bst idBST, struct tm * startDate,size_t startId,struct tm * endDate, size_t endId, char association){
-    pStation startStation, endStation;
-    if(!isValidRental(startId, endId, idBST, &startStation, &endStation)){
+    pStation startStation = isValidId(startId,idBST->root);
+    if(startStation==NULL)
         return;
-    }
+    pStation endStation = isValidId(endId,idBST->root);
+    if(endStation==NULL)
+        return;
+
     startStation->totalAmountRentals += 1;
     startStation->oldestRental = addRentalRec(startStation->oldestRental, startDate, endDate, endStation->stationName);
     if(association == MEMBER){
@@ -266,11 +254,13 @@ void freeAssets(stationADT stations){
 
 
 static pStation link(pStation listAlpha,pStation listCount){
-    if(listCount == NULL || listAlpha->totalAmountRentals >= listCount->totalAmountRentals){
+    int c;
+    if(listCount == NULL || (c = listAlpha->totalAmountRentals - listCount->totalAmountRentals) > 0){
         listAlpha->tailCount = listCount;
         return listAlpha;
     }
-    listCount->tailCount = link(listAlpha,listCount->tailCount);
+    if(c<=0)
+        listCount->tailCount = link(listAlpha,listCount->tailCount);
     return listCount;
 }
 
@@ -280,6 +270,7 @@ void orderByCount(stationADT stations){
         stations->firstCount = link(aux,stations->firstCount);
         aux = aux->tailAlpha;
     }
+    
     return;
 }
 
@@ -338,22 +329,30 @@ static pRental checkIfCircular(pRental rent, char * currentStationName){
     if (strcmp(currentStationName,rent->stationNameEnd)==0){
         return rent;
     }
+    if (rent->tail==NULL){
+        return NULL;
+    }
     return checkIfCircular(rent->tail,currentStationName);
 }
 
 static void writeQ2Rec(pStation stations, htmlTable tablaQ2, FILE * csvQ2){
     if (stations==NULL)
         return;
+    if (stations->oldestRental==NULL){
+        writeQ2Rec(stations->tailAlpha,tablaQ2,csvQ2);
+        return;
+    }
     pRental rent = checkIfCircular(stations->oldestRental,stations->stationName);
-    char * s=NULL;
-    sprintf(s,"%d/%d/%d %d:%d",rent->dateStart->tm_mday,rent->dateStart->tm_mon,rent->dateStart->tm_year,
-    rent->dateStart->tm_hour,rent->dateStart->tm_min);
+    if (rent==NULL)
+    {
+        writeQ2Rec(stations->tailAlpha,tablaQ2,csvQ2);
+        return;
+    }
+    char * s=calloc(1,sizeof(char)*16);
+    strftime(s,16,"%d/%m/%Y %H:%M",rent->dateStart);
     addHTMLRow(tablaQ2,stations->stationName,rent->stationNameEnd,s);
-    fprintf(csvQ2,"%s;%s;%d/%d/%d %d:%d\n",
-    stations->stationName,
-    rent->stationNameEnd,
-    rent->dateStart->tm_mday,rent->dateStart->tm_mon,rent->dateStart->tm_year,
-    rent->dateStart->tm_hour,rent->dateStart->tm_min);
+    fprintf(csvQ2,"%s;%s;%s\n", stations->stationName, rent->stationNameEnd, s);
+    free(s);
     writeQ2Rec(stations->tailAlpha,tablaQ2,csvQ2);
     return;
 }
@@ -372,28 +371,42 @@ void query2(struct stationCDT * stations){
     fclose(csvQ2);
 }
 
-static int dayOfWeek(int day, int month, int year){
-    if (month < 3) {
-        month += 12;
-        year--;
-    }
-    int yearInCentury = year % 100;
-    int century = year / 100 ;
-    int h = ( day + (13 * ( month + 1 )) / 5 + yearInCentury + yearInCentury / 4 + century / 4 - 2 * century ) % 7;
-    return h;
+static int getDoomsday(int year, int century) {
+    int anchorDay = (5 * (century % 4) + 2) % 7;
+    int doomsday = (year + year/4 - year/100 + year/400 + anchorDay) % 7;
+    return doomsday;
 }
 
-static void countTrips(pRental rentalList, size_t * startedTrips, size_t * endedTrips){
+static int getWeekDay(int day,int month,int year){
+    int century = year / 100;
+    int yearInCentury = year % 100;
+
+    int doomsday = getDoomsday(yearInCentury, century);
+
+    int monthOffsets[] = {0, 3, 28, 0, 4, 9, 6, 11, 8, 5, 10, 7, 12};
+    int monthOffset = monthOffsets[month - 1];
+
+    int dayOfWeek = (day - monthOffset + doomsday - 1) % 7;
+
+    if (dayOfWeek < 0) {
+        dayOfWeek += 7;
+    }
+    return dayOfWeek;
+}
+
+
+
+static void countTrips(pRental rentalList, size_t startedTrips[DAYS_IN_WEEK], size_t endedTrips[DAYS_IN_WEEK]){
     while(rentalList != NULL){
-        startedTrips[dayOfWeek(rentalList->dateStart->tm_mday,rentalList->dateStart->tm_mon+1,rentalList->dateStart->tm_year+1900)]+=1;
-        endedTrips[dayOfWeek(rentalList->dateEnd->tm_mday,rentalList->dateEnd->tm_mon+1,rentalList->dateEnd->tm_year+1900)]+=1;
+        startedTrips[getWeekDay(rentalList->dateStart->tm_mday,rentalList->dateStart->tm_mon+1,rentalList->dateStart->tm_year+1900)]+=1;
+        endedTrips[getWeekDay(rentalList->dateEnd->tm_mday,rentalList->dateEnd->tm_mon+1,rentalList->dateEnd->tm_year+1900)]+=1;
         rentalList=rentalList->tail;
     }
     return;
 }
 
-static void writeQ3(size_t * startedTrips, size_t * endedTrips){
-    char * weekDays[]={"Saturday","Sunday","Monday","Tuesday","Wednesday","Thursday","Friday"};
+static void writeQ3(size_t startedTrips[DAYS_IN_WEEK], size_t endedTrips[DAYS_IN_WEEK]){
+    char * weekDays[]={"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};
     errno = 0;
     FILE * csvQ3 = fopen("query3.csv","wt");
     if(errno != 0 || csvQ3==NULL){
@@ -402,20 +415,16 @@ static void writeQ3(size_t * startedTrips, size_t * endedTrips){
     }
     fputs("weekDay;startedTrips;endedTrips\n",csvQ3);
     htmlTable tablaQ3 = newTable("query3.html",3,"weekDay","startedTrips","endedTrips");
-    for (size_t i = monday, j=i; i < DAYS_IN_WEEK+monday; i++)
+    for (size_t i = monday; i < DAYS_IN_WEEK; i++)
     {
-        if (i%friday==0)
-        {
-            j=saturday;
-        }
-        else{
-            j++;
-        }
-        fscanf(csvQ3,"%s;%lu;%lu\n",*(weekDays+j),startedTrips+j,endedTrips+j);
-        char * sT=NULL, * eT=NULL;
-        sprintf(sT,"%ld",startedTrips[j]);
-        sprintf(eT,"%ld",endedTrips[j]);
-        addHTMLRow(tablaQ3,*(weekDays+j),sT,eT);
+        fprintf(csvQ3,"%s;%zu;%zu\n",*(weekDays+i),startedTrips[i],endedTrips[i]);
+        char sT[150]/* =malloc(countDigit(startedTrips[i])+1) */;
+        char eT[150]/* =malloc(countDigit(endedTrips[i])+1) */;
+        sprintf(sT,"%zu",startedTrips[i]);
+        sprintf(eT,"%zu",endedTrips[i]);
+        addHTMLRow(tablaQ3,*(weekDays+i),sT,eT);
+        /* free(sT);
+        free(eT); */
     }
     closeHTMLTable(tablaQ3);
     fclose(csvQ3);

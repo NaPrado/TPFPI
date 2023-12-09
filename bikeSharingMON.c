@@ -10,8 +10,8 @@ int main(int argc, char const *argv[])
     stationADT new = newStation();
     inicializerMONFormat(argv,new);
     query1(new);
-    /* query2(new); */
-    /* query3(new); */
+    query2(new);
+    query3(new);
     freeAssets(new);
     printf("%ld\n",time(NULL)-t);
     return 0;
