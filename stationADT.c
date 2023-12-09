@@ -252,6 +252,17 @@ void freeAssets(stationADT stations){
     free(stations);
 }
 
+// Función para obtener el puntero al nodo con mayor cantidad de viajes
+static pStation getNodeWithMaxRentals(pStation stations) {
+    pStation maxNode = NULL;
+    while (stations != NULL) {
+        if (maxNode == NULL || stations->totalAmountRentals > maxNode->totalAmountRentals) {
+            maxNode = stations;
+        }
+        stations = stations->tailAlpha;
+    }
+    return maxNode;
+}
 
 static pStation link(pStation listAlpha,pStation listCount){
     int c;
@@ -319,7 +330,8 @@ void query1(stationADT stations){
     }
     fprintf(csvQ1,"bikeStation;memberTrips;casualTrips;allTrips\n");
     htmlTable tablaQ1 = newTable("query1.html",4,"bikeStation","memberTrips","casualTrips","allTrips");
-    writeQ1Rec(stations->firstAlpha,tablaQ1,csvQ1);//funcion recursva o iterativa que carga tanto html como csv
+    
+    writeQ1Rec(getNodeWithMaxRentals(stations->firstAlpha),tablaQ1,csvQ1);//funcion recursva o iterativa que carga tanto html como csv
     closeHTMLTable(tablaQ1);
     fclose(csvQ1);
 }
@@ -327,12 +339,12 @@ void query1(stationADT stations){
 
 static pRental checkIfCircular(pRental rent, char * currentStationName){
     if (strcmp(currentStationName,rent->stationNameEnd)==0){
-        return rent;
+        return checkIfCircular(rent->tail,currentStationName);
     }
     if (rent->tail==NULL){
         return NULL;
     }
-    return checkIfCircular(rent->tail,currentStationName);
+    return rent;
 }
 
 static void writeQ2Rec(pStation stations, htmlTable tablaQ2, FILE * csvQ2){
@@ -371,35 +383,22 @@ void query2(struct stationCDT * stations){
     fclose(csvQ2);
 }
 
-static int getDoomsday(int year, int century) {
-    int anchorDay = (5 * (century % 4) + 2) % 7;
-    int doomsday = (year + year/4 - year/100 + year/400 + anchorDay) % 7;
-    return doomsday;
-}
-
 static int getWeekDay(int day,int month,int year){
-    int century = year / 100;
-    int yearInCentury = year % 100;
-
-    int doomsday = getDoomsday(yearInCentury, century);
-
-    int monthOffsets[] = {0, 3, 28, 0, 4, 9, 6, 11, 8, 5, 10, 7, 12};
-    int monthOffset = monthOffsets[month - 1];
-
-    int dayOfWeek = (day - monthOffset + doomsday - 1) % 7;
-
-    if (dayOfWeek < 0) {
-        dayOfWeek += 7;
+    int weekday  = (day += month < 3 ? year-- : year - 2, 23*month/9 + day + 4 + year/4- year/100 + year/400)%7;
+    if (weekday==0)
+    {
+        return sunday;
     }
-    return dayOfWeek;
+    else
+        return weekday-1;
 }
 
 
 
 static void countTrips(pRental rentalList, size_t startedTrips[DAYS_IN_WEEK], size_t endedTrips[DAYS_IN_WEEK]){
     while(rentalList != NULL){
-        startedTrips[getWeekDay(rentalList->dateStart->tm_mday,rentalList->dateStart->tm_mon+1,rentalList->dateStart->tm_year+1900)]+=1;
-        endedTrips[getWeekDay(rentalList->dateEnd->tm_mday,rentalList->dateEnd->tm_mon+1,rentalList->dateEnd->tm_year+1900)]+=1;
+        startedTrips[getWeekDay(rentalList->dateStart->tm_mday,rentalList->dateStart->tm_mon+1,rentalList->dateStart->tm_year+1900)]++;
+        endedTrips[getWeekDay(rentalList->dateEnd->tm_mday,rentalList->dateEnd->tm_mon+1,rentalList->dateEnd->tm_year+1900)]++;
         rentalList=rentalList->tail;
     }
     return;
@@ -417,11 +416,11 @@ static void writeQ3(size_t startedTrips[DAYS_IN_WEEK], size_t endedTrips[DAYS_IN
     htmlTable tablaQ3 = newTable("query3.html",3,"weekDay","startedTrips","endedTrips");
     for (size_t i = monday; i < DAYS_IN_WEEK; i++)
     {
-        fprintf(csvQ3,"%s;%zu;%zu\n",*(weekDays+i),startedTrips[i],endedTrips[i]);
+        fprintf(csvQ3,"%s;%lu;%lu\n",*(weekDays+i),startedTrips[i],endedTrips[i]);
         char sT[150]/* =malloc(countDigit(startedTrips[i])+1) */;
         char eT[150]/* =malloc(countDigit(endedTrips[i])+1) */;
-        sprintf(sT,"%zu",startedTrips[i]);
-        sprintf(eT,"%zu",endedTrips[i]);
+        sprintf(sT,"%lu",startedTrips[i]);
+        sprintf(eT,"%lu",endedTrips[i]);
         addHTMLRow(tablaQ3,*(weekDays+i),sT,eT);
         /* free(sT);
         free(eT); */
