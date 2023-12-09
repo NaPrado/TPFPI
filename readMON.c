@@ -91,7 +91,6 @@ static void inicializerBikesMONFormat(char const *argv[],bst tree){
             addRental(tree,startDate,idStart,endDate,idEnd,isMember);
         else if (result!=0)// Hubo un problema al analizar la cadena
             printf("Error al analizar la cadena\n");
-
         free(s);
     }
     fclose(bikesMON);
@@ -137,7 +136,7 @@ void inicializerMONFormat(char const * argv[],stationADT station){
     }
     
     fclose(stationsMON);
-    //inicializerBikesMONFormat(argv,tree);
-    //orderByCount(station);
+    inicializerBikesMONFormat(argv,tree);
+    orderByCount(station);
     freeTree(tree);
 }
