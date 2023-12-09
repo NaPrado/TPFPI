@@ -5,10 +5,8 @@
 #include <strings.h>
 #include <errno.h>
 #include <math.h>
-//#include <stdbool.h>
 #include "stationADT.h"
 
-#define BLOQUECHARS 10
 #define MEMBER 1
 #define CASUAL 0 
 
@@ -114,7 +112,6 @@ void inicializerMONFormat(char const * argv[],stationADT station){
         perror("Ocurrio un error leyendo la primer linea del archivo de estaciones de Montreall\n");
         exit (1);
     }
-    int c=0;
     while (!feof(stationsMON)){
         getline(&s, &longitud, stationsMON);
         int id;
@@ -136,11 +133,107 @@ void inicializerMONFormat(char const * argv[],stationADT station){
             }
             token = strtok(NULL, ";");  // Mueve la llamada a strtok fuera del switch
         }
-        c++;
     }
     
     fclose(stationsMON);
     inicializerBikesMONFormat(argv,tree,station);
+    orderByCount(station);
+    freeTree(tree);
+}
+
+static void inicializerBikesNYCFormat(char const *argv[],bst tree,stationADT station){
+    errno=0;
+    FILE * bikesNYC = fopen( argv[1], "rt");
+    if(errno != 0 && bikesNYC==NULL){
+        perror("Ocurrio un error mientrar se abria el archivo de viajes realizados en Nueva York\n");
+        exit (EXIT_FAILURE);
+    }
+    
+    char * s = NULL;
+    size_t longitud = 0;
+    errno=0;
+    if(getline(&s, &longitud, bikesNYC)==-1){
+        perror("Ocurrio un error leyendo la primer linea del archivo de viajes realizados en Nueva York\n");
+        exit (EXIT_FAILURE);
+    }
+    free(s);
+    while (!feof(bikesNYC)){
+        s=NULL;
+        getline(&s, &longitud, bikesNYC); //VER SI ES POSIBLE Q FALLE
+        struct tm startDate;
+        struct tm endDate;
+        int idStart, idEnd;
+        char isMember;
+                // Formato: yyyy-mm-dd HH:mm:ss;idStart;yyyy-mm-dd HH:mm:ss;idEnd;rideable_type;member_casual
+        int result = sscanf(s, "%d-%d-%d %d:%d:%d.000000;%d;%d-%d-%d %d:%d:%d.000000;%d;%*[^;];%c\n",
+                            &(startDate.tm_year), &(startDate.tm_mon), &(startDate.tm_mday), 
+                            &(startDate.tm_hour), &(startDate.tm_min), &(startDate.tm_sec),
+                            &idStart,
+                            &(endDate.tm_year), &(endDate.tm_mon), &(endDate.tm_mday),
+                            &(endDate.tm_hour), &(endDate.tm_min), &(endDate.tm_sec),
+                            &idEnd,
+                            &isMember);
+        //seteo de fechas
+        startDate.tm_isdst = -1;
+        startDate.tm_year=startDate.tm_year-1900;
+        startDate.tm_mon=startDate.tm_mon-1, 
+        endDate.tm_year=endDate.tm_year-1900;
+        endDate.tm_mon=startDate.tm_mon-1;
+        isMember=(isMember=='m')?1:0;
+
+        if (result == 15) {
+            // La cadena se analizó correctamente, los valores están en las variables correspondientes.
+            addRental(tree,startDate,idStart,endDate,idEnd,isMember,station);
+        } 
+        else if (result!=0)// Hubo un problema al analizar la cadena
+            printf("Error al analizar la cadena\n");
+        free(s);
+    }
+    fclose(bikesNYC);
+}
+
+void inicializerNYCFormat(char const * argv[],stationADT station){
+    bst tree=newtree();
+    errno = 0;
+    FILE * stationsNYC = fopen( argv[2], "rt");
+    if(errno != 0 || stationsNYC==NULL){
+        perror("Ocurrio un error mientrar se abria el archivo de las estaciones de Nueva York\n");
+        exit (EXIT_FAILURE);
+    }
+    char * s = NULL;
+    size_t longitud = 0;
+    // Leer líneas desde el archivo
+    errno=0;
+    if(getline(&s, &longitud, stationsNYC)==-1){
+        perror("Ocurrio un error leyendo la primer linea del archivo de estaciones de Nueva York\n");
+        exit (EXIT_FAILURE);
+    }
+    while (!feof(stationsNYC)){
+        getline(&s, &longitud, stationsNYC);
+        char * name;
+        int id;
+        char * token=strtok(s,";");
+        for (int q = 0; q < 4; q++) {
+            if (token != NULL) {
+                switch (q) {
+                    case 0:
+                        // leo el name
+                        name=token;
+                        break;
+                    case 3:
+                        // leo el id
+                        id = atoi(token);
+                        addStation(station,name,tree,id);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            token = strtok(NULL, ";");  // Mueve la llamada a strtok fuera del switch
+        }
+    }
+    fclose(stationsNYC);
+    inicializerBikesNYCFormat(argv,tree,station);
     orderByCount(station);
     freeTree(tree);
 }
