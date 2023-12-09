@@ -112,8 +112,7 @@ bst newtree(void) {
 }
 
 stationADT newStation(void){
-    stationADT new = calloc(1,sizeof(struct stationCDT));
-    return new;
+    return calloc(1,sizeof(struct stationCDT));
 }
 
 
@@ -144,20 +143,18 @@ static void addToTree(bst bst, size_t id, struct station * associatedStation){
 }
 
 static pStation addStationRec(pStation alphaList,char * stationName, bst rootbst, size_t stationId){
-    if(alphaList == NULL || strcasecmp(alphaList->stationName,stationName) < 0){//si llegue al final o era vacia o tengo que añadir añado
+    int c;
+    if(alphaList == NULL ||  (c=strcasecmp(alphaList->stationName, stationName)) > 0){//si llegue al final o era vacia o tengo que añadir añado
         //incorporacion a la lista
         pStation newNode = calloc(1,sizeof(struct station));
         newNode->stationName = stationName; //ver si anda.
-        newNode->tailAlpha = alphaList;
+        newNode->tailAlpha =alphaList;
         //incorporacion a el BST
         addToTree(rootbst,stationId,newNode);
         return newNode;
     }
-    if(strcasecmp(alphaList->stationName,stationName) == 0){
-        //ya estaba???
-        return alphaList;
-    }
-    alphaList->tailAlpha = addStationRec(alphaList->tailAlpha, stationName, rootbst, stationId);
+    if(c<0)
+        alphaList->tailAlpha=addStationRec(alphaList->tailAlpha,stationName,rootbst,stationId);
     return alphaList;
 }
 
@@ -215,8 +212,7 @@ void addRental(bst idBST, struct tm * startDate,size_t startId,struct tm * endDa
         return;
     }
     startStation->totalAmountRentals += 1;
-    char * endStationName = endStation->stationName; //ver si anda (quilombitos de strings)
-    startStation->oldestRental = addRentalRec(startStation->oldestRental, startDate, endDate, endStationName);
+    startStation->oldestRental = addRentalRec(startStation->oldestRental, startDate, endDate, endStation->stationName);
     if(association == MEMBER){
         startStation->amountRentalsByMembers += 1;
     }
@@ -268,30 +264,9 @@ void freeAssets(stationADT stations){
     free(stations);
 }
 
-/* int main(int argc, char const *argv[])
-{
-    time_t t=time(NULL);
-    stationADT newStation;
-    newStation=calloc(1,sizeof(stationADT));
-    inicializerBikesMONFormat(argv,newStation);
-    free(newStation);
-    printf("%ld\n",time(NULL)-t);
-    return 0;
-}
-int main(int argc, char const *argv[])
-{
-    time_t t=time(NULL);
-    //stationADT newStation;
-    //newStation=calloc(1,sizeof(stationADT));
-    inicializerBikesMONFormat(argv,newStation);
-    //free(newStation);
-    printf("%ld\n",time(NULL)-t);
-    return 0;
-}
- */
 
 static pStation link(pStation station,pStation listCount){
-    if(listCount->tailCount == NULL || station->totalAmountRentals <= listCount->totalAmountRentals){
+    if(listCount == NULL || station->totalAmountRentals <= listCount->totalAmountRentals){
         station->tailCount = listCount;
         listCount->tailCount = station;
         return listCount;
@@ -327,13 +302,13 @@ static void writeQ1(stationADT stations){
     }
     fprintf(csvQ1,"bikeStation;memberTrips;casualTrips;allTrips\n");
     htmlTable tablaQ1 = newTable("query1.html",4,"bikeStation","memberTrips","casualTrips","allTrips");
-    writeQ1Rec(stations->firstCount,tablaQ1,csvQ1);//funcion recursva o iterativa que carga tanto html como csv
+    writeQ1Rec(stations->firstAlpha,tablaQ1,csvQ1);//funcion recursva o iterativa que carga tanto html como csv
     closeHTMLTable(tablaQ1);
     fclose(csvQ1);
 }
 
 void query1(stationADT stations){
-    orderByCount(stations);
+    //orderByCount(stations);
     writeQ1(stations);//carga tanto html como csv
 }
 

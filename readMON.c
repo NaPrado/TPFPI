@@ -137,7 +137,7 @@ void inicializerMONFormat(char const * argv[],stationADT station){
     }
     
     fclose(stationsMON);
-    inicializerBikesMONFormat(argv,tree);
+    //inicializerBikesMONFormat(argv,tree);
     //orderByCount(station);
     freeTree(tree);
 }
