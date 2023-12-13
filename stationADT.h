@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <time.h>
 #define DAYS_IN_WEEK 7
+#define MONTHS_IN_YEAR 12
 
 enum DAYS           
 {     

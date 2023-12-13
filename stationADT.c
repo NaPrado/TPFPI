@@ -9,6 +9,14 @@
 #define CASUAL 0 
 
 
+struct nameIdAndCounter{
+    char * name;
+    size_t id;
+    size_t counter;
+};
+
+typedef struct nameIdAndCounter * pNameIdAndCounter;
+
 typedef struct rental * pRental ;
 struct rental 
 {
@@ -21,6 +29,8 @@ typedef struct station * pStation ;
 struct station 
 {
     char * stationName;
+    pNameIdAndCounter * mostPopularEndStations;
+    size_t sizeOfMostPopular;
     pRental oldestRental;
     size_t amountRentalsByMembers;
     size_t amountRentalsByCasuals;
@@ -29,10 +39,16 @@ struct station
     pStation tailCount;
 };
 
+struct topThreeCircularStations{
+    pNameIdAndCounter * topOfMonth;
+    size_t sizeOfTopOfMonth;
+};
+
 struct stationsCDT
 {
     size_t startedTrips[DAYS_IN_WEEK];
     size_t endedTrips[DAYS_IN_WEEK];
+    struct topThreeCircularStations topThreeInMonth[MONTHS_IN_YEAR];
     pStation firstAlpha;
     pStation iterAlpha;
     pStation firstCount;
