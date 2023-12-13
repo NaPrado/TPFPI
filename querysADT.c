@@ -134,7 +134,7 @@ void query3(stationsADT stations){
     fclose(csvQ3);
 }
 
-/* void query4(stationsADT stations){
+void query4(stationsADT stations){
     toBeginAlpha(stations);
     char * mostPopularName;
     size_t amountOfTrips;
@@ -148,10 +148,10 @@ void query3(stationsADT stations){
 
 void query5(stationsADT stations){
     char * months[MONTHS_IN_YEAR] = {"January","February","March","April","May","June","July","August","September","October","November","December"};
-    char ** topThree;
+    char * topThree[3];
     writeQ5Title();
     for(int i = 0; i<MONTHS_IN_YEAR; i++){
-        topThree=getTopThreeCircularRentalStationsByMonth(stations, i);
+        getTopThreeCircularRentalStationsByMonth(stations, i,topThree);
         writeQ5(months[i],topThree);
     }
-} */
+}

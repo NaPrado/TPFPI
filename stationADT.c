@@ -10,11 +10,6 @@
 #define MEMBER 1
 #define CASUAL 0 
 
-#define INDICATOR_HAS_NO_UPPER_LIMIT -1
-
-#define EMPTY_IDENTIFIER "Empty"
-
-
 enum DAYS           
 {     
     monday=0,       
@@ -427,13 +422,25 @@ int compareNameAndCount(const void * elem1,const void * elem2){
     return strcmp(elemA->name,elemB->name);
 }
 
-char ** getTopThreeCircularRentalStationsByMonth(stationsADT stations, int month){
-    char * topThree[3] = {EMPTY_IDENTIFIER,EMPTY_IDENTIFIER,EMPTY_IDENTIFIER};
+int isValidMonth(int month){
+    return(month >= 0 && month <= MONTHS_IN_YEAR);
+}
+
+void getTopThreeCircularRentalStationsByMonth(stationsADT stations, int month, char ** topThree){
+    if(!isValidMonth(month)){
+        printf("Error de pasaje de mes. El mes es invalido\n");
+        exit(EXIT_FAILURE);
+    }
     qsort(stations->topThreeInMonth[month].topOfMonth, stations->topThreeInMonth[month].sizeOfTopOfMonth,sizeof(pNameIdAndCounter),compareNameAndCount);
-    for(int i = 0; i<3 && i<stations->topThreeInMonth[month].sizeOfTopOfMonth; i++){
+    int i;
+    for(i = 0; i<3 && i<stations->topThreeInMonth[month].sizeOfTopOfMonth; i++){
         topThree[i]=stations->topThreeInMonth[month].topOfMonth[i]->name;
     }
-    return topThree;//hacerlo maloqueable o retornar por parametro
+    if(i<3){
+        for(;i<3;i++){
+            topThree[i] = EMPTY_IDENTIFIER;
+        }
+    }
 }
 
 static char * getMostPopularFromArray(pStation station, size_t * amountOfTrips){

@@ -3,8 +3,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+
 #define DAYS_IN_WEEK 7
 #define MONTHS_IN_YEAR 12
+
+#define EMPTY_IDENTIFIER "Empty"
+
+#define INDICATOR_HAS_NO_UPPER_LIMIT -1
+
 
 typedef struct stationsCDT * stationsADT; 
 
@@ -126,8 +132,15 @@ Retorna un vector de dim DAYS_IN_WEEK con la cantidad de viajes finalizados por 
 siendo v[0]= a la cantidad de los lunes, v[1]= a la de los martes, etc..
 */
 size_t * getEndedTrips(stationsADT stations);
-
+/*
+Devuelve un string con el nombre de la estacion mas popular para aquella en la que el iterador alfabetico esta posicionado. Es responsabilidad del usuario
+que el iterador este inicializado y avanzar por el mismo. Ademas recibe por parametro un puntero a la cantidad de alquileres que hayan terminado en la
+estacion mas popular
+*/
 char * getMostPopularFromStationInAlphaOrder(stationsADT stations, size_t * amountOfTrips);
-
-char ** getTopThreeCircularRentalStationsByMonth(stationsADT stations, int month);
+/*
+La funcion recibe el mes en el que se le quiere averiguar cual es el top tres estaciones por cantidad de viajes circulares. Recibe como parametro 
+un vector de dimension tres. 
+*/
+void getTopThreeCircularRentalStationsByMonth(stationsADT stations, int month, char ** topThree);
 #endif
