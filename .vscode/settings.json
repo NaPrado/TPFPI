@@ -9,6 +9,8 @@
         "math.h": "c",
         "stdio.h": "c",
         "time.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "writecsv.h": "c",
+        "typeinfo": "c"
     }
 }

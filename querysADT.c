@@ -1,11 +1,15 @@
 #include <string.h>
 #include <strings.h>
 #include "htmlTable.h"
+#include "writeCSV.h"
 #include "stationADT.h"
-#define ESCAPE_CERO_SPACE 1
 #define QUERY_2_DATE_FORMAT_LONGITUD 20
+#define BLOCK 10
+#define FIRST 0
+#define SECOND 1
+#define THIRD 2
 
-static int countDigit(int num) {
+/* static int countDigit(int num) {
     int count = 0;
 
     // Manejar caso especial para el número 0
@@ -20,22 +24,34 @@ static int countDigit(int num) {
     }
 
     return count;
+} */
+
+char * intToAlocStr(int num){
+    char * str=NULL;
+    int i=0;
+    while (num!=0){
+        if (i%BLOCK==0){
+            str=realloc(str,BLOCK+i);
+        }
+        *(str+i)=(num%10)+'0';
+        num/=10;
+        i++;
+    }
+    *(str+i)='\0';
+    return str;
 }
+
 
 static void writeQ1Rec(stationsADT stations, htmlTable tablaQ1, FILE * csvQ1){
     size_t members=getAmountRentalsByMembersCount(stations);
     size_t casuals=getAmountRentalsByCasualsCount(stations);
     size_t total=getTotalAmountRentalsCount(stations);
-    char * membersStr=calloc(1,(countDigit(members)+ESCAPE_CERO_SPACE));
-    char * casualsStr=calloc(1,(countDigit(casuals)+ESCAPE_CERO_SPACE));
-    char * totalStr=calloc(1,(countDigit(total)+ESCAPE_CERO_SPACE));
-    
-    sprintf(membersStr,"%zu",members);
-    sprintf(casualsStr,"%zu",casuals);
-    sprintf(totalStr,"%zu",total);
+    char * membersStr=intToAlocStr(members);
+    char * casualsStr=intToAlocStr(casuals);
+    char * totalStr=intToAlocStr(total);
     char * stationName = getStationNameCount(stations);
     addHTMLRow(tablaQ1,stationName,members,casuals,total);
-    fprintf(csvQ1,"%s;%ld;%ld;%ld\n",stationName,members,casuals,total);
+    writeRowQ1(csvQ1,stationName,membersStr,casualsStr,totalStr);
     free(membersStr);
     free(casualsStr);
     free(totalStr);
@@ -50,16 +66,9 @@ static void writeQ1Rec(stationsADT stations, htmlTable tablaQ1, FILE * csvQ1){
 
 void query1(stationsADT stations){
     orderByCount(stations);
-    errno = 0;
-    FILE * csvQ1 = fopen("query1.csv","wt");
-    if(errno != 0 || csvQ1==NULL){
-        perror("Ocurrio un error mientrar se creaba el archivo \"query1.csv\" \n");
-        exit (EXIT_FAILURE);
-    }
-    fprintf(csvQ1,"bikeStation;memberTrips;casualTrips;allTrips\n");
+    FILE * csvQ1=newFile("query1.csv");
+    writeHeaderQ1(csvQ1);
     htmlTable tablaQ1 = newTable("query1.html",4,"bikeStation","memberTrips","casualTrips","allTrips");
-    
-
     toBeginCount(stations);
     if (!hasFirstCount(stations))
     {
@@ -82,21 +91,18 @@ static void writeQ2Rec(stationsADT stations, htmlTable tablaQ2, FILE * csvQ2){
             char * startDateStr = calloc(1,sizeof(char)*QUERY_2_DATE_FORMAT_LONGITUD);
             strftime(startDateStr,QUERY_2_DATE_FORMAT_LONGITUD,"%d/%m/%Y %H:%M",&(startDate));
             addHTMLRow(tablaQ2,stationNamestr,stationNameEndStr,startDateStr);
-            fprintf(csvQ2,"%s;%s;%s\n", stationNamestr, stationNameEndStr, startDateStr);
+            writeRowQ2(csvQ2,stationNamestr,stationNameEndStr,startDateStr);
             free(startDateStr);
         }
-        nextCount(stations);
+        nextAlpha(stations);
     }
 }
 
 void query2(stationsADT stations){
+
     errno = 0;
-    FILE * csvQ2 = fopen("query2.csv","wt");
-    if(errno != 0 || csvQ2==NULL){
-        perror("Ocurrio un error mientrar se creaba el archivo \"query1.csv\" \n");
-        exit (EXIT_FAILURE);
-    }
-    fputs("bikeStation;bikeEndStation;oldestDateTime\n",csvQ2);
+    FILE * csvQ2 = newFile("query2.csv");
+    writeHeaderQ2(csvQ2);
     htmlTable tablaQ2 = newTable("query2.html",3,"bikeStation","bikeEndStation","oldestDateTime");
     toBeginAlpha(stations);
     if (!hasFirstAlpha(stations))
@@ -114,44 +120,47 @@ void query3(stationsADT stations){
     size_t * endedTrips=getEndedTrips(stations);
     char * weekDays[]={"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};
     errno = 0;
-    FILE * csvQ3 = fopen("query3.csv","wt");
-    if(errno != 0 || csvQ3==NULL){
-        perror("Ocurrio un error mientrar se creaba el archivo \"query1.csv\" \n");
-        exit (EXIT_FAILURE);
-    }
-    fputs("weekDay;startedTrips;endedTrips\n",csvQ3);
+    FILE * csvQ3 = newFile("query3.csv");
+    writeHeaderQ3(csvQ3);
     htmlTable tablaQ3 = newTable("query3.html",3,"weekDay","startedTrips","endedTrips");
     for (size_t i = 0; i < DAYS_IN_WEEK; i++)
     {
-        fprintf(csvQ3,"%s;%lu;%lu\n",*(weekDays+i),startedTrips[i],endedTrips[i]);
-        char sT[30];
-        char eT[30];
-        sprintf(sT,"%lu",startedTrips[i]);
-        sprintf(eT,"%lu",endedTrips[i]);
+        char *sT=intToAlocStr(startedTrips[i]);
+        char *eT=intToAlocStr(endedTrips[i]);
+        writeRowQ3(csvQ3,*(weekDays+i),sT,eT);
         addHTMLRow(tablaQ3,*(weekDays+i),sT,eT);
+        free(sT);
+        free(eT);
     }
     closeHTMLTable(tablaQ3);
     fclose(csvQ3);
 }
 
 void query4(stationsADT stations){
+    FILE * csvQ4 = newFile("query4.csv");
+    writeHeaderQ4(csvQ4);
+    htmlTable tablaQ4 = newTable("query4.html",3,"bikeStation","mostPopRouteEndStation","mostPopRouteTrips");
     toBeginAlpha(stations);
     char * mostPopularName;
     size_t amountOfTrips;
-    writeQ4Title();
     while(hasNextAlpha(stations)){
         mostPopularName = getMostPopularFromStationInAlphaOrder(stations,&amountOfTrips);
-        writeQ4(getStationNameAlpha(stations), mostPopularName, amountOfTrips);
+        char name =getStationNameAlpha(stations);
+        writeRowQ4(csvQ4,name, mostPopularName, amountOfTrips);
+        addHTMLRow(tablaQ4,name, mostPopularName, amountOfTrips);
         nextAlpha(stations);
     }
 }
 
 void query5(stationsADT stations){
+    FILE * csvQ5 = newFile("query5.csv");
+    writeHeaderQ4(csvQ5);
+    htmlTable tablaQ5 = newTable("query5.html",4,"month","loopsTop1St","loopsTop2St","loopsTop3St");
     char * months[MONTHS_IN_YEAR] = {"January","February","March","April","May","June","July","August","September","October","November","December"};
     char * topThree[3];
-    writeQ5Title();
     for(int i = 0; i<MONTHS_IN_YEAR; i++){
         getTopThreeCircularRentalStationsByMonth(stations, i,topThree);
-        writeQ5(months[i],topThree);
+        writeRowQ5(csvQ5,months[i],topThree[FIRST],topThree[SECOND],topThree[THIRD]);
+        addHTMLRow(tablaQ5,months[i],topThree[FIRST],topThree[SECOND],topThree[THIRD]);
     }
 }
