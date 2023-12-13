@@ -22,26 +22,6 @@ static int countDigit(int num) {
     return count;
 }
 
-static char* copyString(const char * origin) {
-    // Obtener la longitud de la cadena de origen
-    size_t length = strlen(origin);
-
-    // Asignar memoria dinámica para la cadena de destino
-    char *toReturn = (char*)malloc((length + 1) * sizeof(char));
-
-    // Verificar si la asignación de memoria fue exitosa
-    if (toReturn == NULL) {
-        perror("Error al asignar memoria");
-        exit(EXIT_FAILURE);
-    }
-
-    // Copiar la cadena de origen a la zona de memoria dinámica
-    strcpy(toReturn, origin);
-
-    // Devolver la dirección de la zona de memoria asignada
-    return toReturn;
-}
-
 static void writeQ1Rec(stationsADT stations, htmlTable tablaQ1, FILE * csvQ1){
     size_t members=getAmountRentalsByMembersCount(stations);
     size_t casuals=getAmountRentalsByCasualsCount(stations);
@@ -55,10 +35,10 @@ static void writeQ1Rec(stationsADT stations, htmlTable tablaQ1, FILE * csvQ1){
     sprintf(totalStr,"%zu",total);
     char * stationName = getStationNameCount(stations);
     addHTMLRow(tablaQ1,stationName,members,casuals,total);
-    fprintf(csvQ1,"%s;%ld;%ld;%ld\n",stationName,casuals,total);
-    free(members);
-    free(casuals);
-    free(total);
+    fprintf(csvQ1,"%s;%ld;%ld;%ld\n",stationName,members,casuals,total);
+    free(membersStr);
+    free(casualsStr);
+    free(totalStr);
 
     if (!hasNextCount(stations)){
         return;
@@ -86,7 +66,7 @@ void query1(stationsADT stations){
         perror("No hay estaciones ingresadas\n");
         exit (EXIT_FAILURE);
     }
-    writeQ1Rec(/* getNodeWithMaxRentals(stations->firstAlpha) */stations,tablaQ1,csvQ1);
+    writeQ1Rec(stations,tablaQ1,csvQ1);
     closeHTMLTable(tablaQ1);
     fclose(csvQ1);
 }
@@ -141,7 +121,7 @@ void query3(stationsADT stations){
     }
     fputs("weekDay;startedTrips;endedTrips\n",csvQ3);
     htmlTable tablaQ3 = newTable("query3.html",3,"weekDay","startedTrips","endedTrips");
-    for (size_t i = monday; i < DAYS_IN_WEEK; i++)
+    for (size_t i = 0; i < DAYS_IN_WEEK; i++)
     {
         fprintf(csvQ3,"%s;%lu;%lu\n",*(weekDays+i),startedTrips[i],endedTrips[i]);
         char sT[30];

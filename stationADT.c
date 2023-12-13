@@ -1,12 +1,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
+#include <strings.h>
 #include "stationADT.h"
 #include "treeADT.h"
 
 
 #define MEMBER 1
 #define CASUAL 0 
+
+enum DAYS           
+{     
+    monday=0,       
+    tuesday,
+    wednesday,     
+    thursday,
+    friday,
+    saturday,     
+    sunday,
+} workday;
 
 
 struct nameIdAndCounter{
@@ -56,13 +69,35 @@ struct stationsCDT
     bstADT tree;
 };                              
 
-stationsADT newStation(void){
+
+static char* copyString(const char * origin) {
+    // Obtener la longitud de la cadena de origen
+    size_t length = strlen(origin);
+
+    // Asignar memoria dinámica para la cadena de destino
+    char *toReturn = (char*)malloc((length + 1) * sizeof(char));
+
+    // Verificar si la asignación de memoria fue exitosa
+    if (toReturn == NULL) {
+        perror("Error al asignar memoria");
+        exit(EXIT_FAILURE);
+    }
+
+    // Copiar la cadena de origen a la zona de memoria dinámica
+    strcpy(toReturn, origin);
+
+    // Devolver la dirección de la zona de memoria asignada
+    return toReturn;
+}
+
+
+stationsADT newStationsGroup(void){
     stationsADT new = calloc(1,sizeof(struct stationsCDT));
     new->tree=newtree();
     return new;
 }
 
-static pStation addStationRec(pStation alphaList,char * stationName, stationsADT station, size_t stationId){
+static pStation addStationRec(pStation alphaList,char * stationName, bstADT tree, size_t stationId){
     int c;
     if(alphaList == NULL ||  (c=strcasecmp(alphaList->stationName, stationName)) > 0){
         //incorporacion a la lista
@@ -70,18 +105,19 @@ static pStation addStationRec(pStation alphaList,char * stationName, stationsADT
         newNode->stationName = stationName;
         newNode->tailAlpha =alphaList;
         //incorporacion a el BST
-        addToTree(station->tree,stationId,newNode);
+        addToTree(tree,stationId,newNode);
         return newNode;
     }
     if(c<0){
-        alphaList->tailAlpha=addStationRec(alphaList->tailAlpha,stationName,station->tree,stationId);
+        alphaList->tailAlpha=addStationRec(alphaList->tailAlpha,stationName,tree,stationId);
     }
     return alphaList;
 }
 
+
 void addStation(stationsADT stations,char * stationName, size_t stationId){
     char * name =copyString(stationName);
-    stations->firstAlpha=addStationRec(stations->firstAlpha,name,stations,stationId);
+    stations->firstAlpha=addStationRec(stations->firstAlpha,name,stations->tree,stationId);
     return;
 }
 
@@ -271,7 +307,7 @@ void nextCount(stationsADT stations) {
 }
 
 
-size_t getCountAmountRentalsByMembers(stationsADT stations){
+size_t getAmountRentalsByMembersCount(stationsADT stations){
     if (stations->iterCount==NULL)
     {
         fprintf(stderr, "No se inicio el iterador\n");

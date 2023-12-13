@@ -6,7 +6,7 @@
 #include "stationADT.h"
 #include "read.h"
 
-#define ESCAPE_CERO "\0"
+#define ESCAPE_CERO '\0'
 #define SEMICOLON ";"
 #define MEMBER 1
 #define CASUAL 0 
@@ -19,63 +19,7 @@
 #define DATE_ELEMS 6
 #define DATE_DELIM "- :"
 
-#ifndef FORMATNYC
-#define FORMATNYC 1
-#endif
-#ifndef FORMATMON
-#define FORMATMON 0
-#endif
 
-#if FORMATNYC
-#define NYCBIKES_FORMAT_ENUM \
-    dateStart, \
-    startedId, \
-    dateEnd, \
-    endedId, \
-    rideableType, \
-    member
-
-#define NYCSTATIONS_FORMAT_ENUM \
-    stationName, \
-    latitude, \
-    longitude, \
-    idStation
-
-enum NYCBIKES {
-    NYCBIKES_FORMAT_ENUM
-};
-
-enum NYCSTATIONS {
-    NYCSTATIONS_FORMAT_ENUM
-};
-
-#define MAX_COLS_ELEMS_BIKES 6
-
-#elif FORMATMON
-#define MONBIKES_FORMAT_ENUM \
-    dateStart, \
-    startedId, \
-    dateEnd, \
-    endedId, \
-    member
-
-#define MONSTATIONS_FORMAT_ENUM \
-    idStation, \
-    stationName, \
-    latitude, \
-    longitude
-
-enum MONBIKES {
-    MONBIKES_FORMAT_ENUM
-};
-
-enum MONSTATIONS {
-    MONSTATIONS_FORMAT_ENUM
-};
-
-#define MAX_COLS_ELEMS_BIKES 6
-
-#endif
 
 enum dateForm{
     year=0,
@@ -90,7 +34,7 @@ enum dateForm{
 
 static void getLine(char * str, FILE *stream) {
     int i = 0;
-    for (int c;c==ESCAPE_CERO; i++, c=getc(stream))
+    for (char c;c==ESCAPE_CERO; i++, c=getc(stream))
     {
         if ((i%CHARSBLOCK)==0)
         {
@@ -132,6 +76,7 @@ static struct tm saveDate(char * date){
         }
         token = strtok(NULL, DATE_DELIM);
     }
+    return moment;
 }
 
 
@@ -185,6 +130,7 @@ static void readCSVFileBikes(char const *argv[],stationsADT stations){
             }
             token = strtok(NULL, SEMICOLON);
         }
+        addRental(startDate,idStart,endDate,idEnd,isMember,stations);
     }
     fclose(bikesFile);
 }

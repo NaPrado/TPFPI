@@ -6,17 +6,6 @@
 #define DAYS_IN_WEEK 7
 #define MONTHS_IN_YEAR 12
 
-enum DAYS           
-{     
-    monday=0,       
-    tuesday,
-    wednesday,     
-    thursday,
-    friday,
-    saturday,     
-    sunday,
-} workday;
-
 typedef struct stationsCDT * stationsADT; 
 
 /*
@@ -125,16 +114,16 @@ para avanzar usar nextCount y no olvidar hasNextCount para chequear que exista
 char * getStationNameCount(stationsADT stations);
 
 
-hasRentsAlpha(stationsADT stations);
+int hasRentsAlpha(stationsADT stations);
 
 /*
 Retorna un vector de dim DAYS_IN_WEEK con la cantidad de viajes empezados por dia de la semana
 siendo v[0]= a la cantidad de los lunes, v[1]= a la de los martes, etc..
 */
-size_t * getStartedTrips(stations);
+size_t * getStartedTrips(stationsADT stations);
 /*
 Retorna un vector de dim DAYS_IN_WEEK con la cantidad de viajes finalizados por dia de la semana
 siendo v[0]= a la cantidad de los lunes, v[1]= a la de los martes, etc..
 */
-size_t * getEndedTrips(stations);
+size_t * getEndedTrips(stationsADT stations);
 #endif

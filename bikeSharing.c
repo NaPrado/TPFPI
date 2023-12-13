@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "stationADT.h"
 #include "read.h"
+#include "querysADT.h"
 
 int main(int argc, char const *argv[])
 {
@@ -10,7 +11,7 @@ int main(int argc, char const *argv[])
         exit(EXIT_FAILURE);
     }
     stationsADT new= newStationsGroup();
-    inicializerNYCFormat(argv,new);
+    readCSVFileStation(argv,new);
     query1(new);
     query2(new);
     query3(new);

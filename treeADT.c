@@ -1,5 +1,6 @@
 #include "treeADT.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 typedef struct node * pNode;
 
@@ -46,10 +47,10 @@ void * existIdRec(size_t id, pNode root){
     }
     int c;
     if((c=root->id-id)>0){
-        return isValidId(id,root->left);
+        return existIdRec(id,root->left);
     }
     if(c<0){
-        return isValidId(id,root->right);
+        return existIdRec(id,root->right);
     }
     return root->elem;
 }
