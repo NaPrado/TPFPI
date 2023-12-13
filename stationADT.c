@@ -10,6 +10,11 @@
 #define MEMBER 1
 #define CASUAL 0 
 
+#define INDICATOR_HAS_NO_UPPER_LIMIT -1
+
+#define EMPTY_IDENTIFIER "Empty"
+
+
 enum DAYS           
 {     
     monday=0,       
@@ -67,7 +72,11 @@ struct stationsCDT
     pStation firstCount;
     pStation iterCount;
     bstADT tree;
-};                              
+    int floorYear;
+    int ceilingYear; //de ser igual a INDICATOR_HAS_NO_UPPER_LIMIT significa q no hay limite superior
+};
+
+#define IS_WITHIN_INTERVAL(x,y,z) ((z) == INDICATOR_HAS_NO_UPPER_LIMIT)? ((x)>=(y)):(((x)>=(y)) && (x)<=(z))
 
 
 static char* copyString(const char * origin) {
@@ -91,9 +100,11 @@ static char* copyString(const char * origin) {
 }
 
 
-stationsADT newStationsGroup(void){
+stationsADT newStationsGroup(int floorYear, int ceilingYear){
     stationsADT new = calloc(1,sizeof(struct stationsCDT));
     new->tree=newtree();
+    new->ceilingYear = ceilingYear;
+    new->floorYear = floorYear;
     return new;
 }
 
@@ -137,6 +148,50 @@ static void countTrips(stationsADT stations,struct tm startDate,struct tm endDat
     return;
 }
 
+static int isWithinYearInterval(int startYear, int endYear, stationsADT stations){
+    return (IS_WITHIN_INTERVAL(startYear,stations->floorYear,stations->ceilingYear) && IS_WITHIN_INTERVAL(endYear,stations->floorYear,stations->ceilingYear));
+}
+
+static int isValidForQ5(struct tm startDate, struct tm endDate, stationsADT stations){
+    return (isWithinYearInterval(startDate.tm_year,endDate.tm_year,stations) && startDate.tm_mon == endDate.tm_mon);
+}
+
+static void addToTopThree(int month, stationsADT stations, pStation station, size_t stationId){
+    for(int i = 0; i < stations->topThreeInMonth[month].sizeOfTopOfMonth; i++){
+        if(stations->topThreeInMonth[month].topOfMonth[i]->id == stationId){
+            stations->topThreeInMonth[month].topOfMonth[i]->counter+=1;
+            return;
+        }
+    }
+    stations->topThreeInMonth[month].topOfMonth = realloc(stations->topThreeInMonth[month].topOfMonth,(stations->topThreeInMonth[month].sizeOfTopOfMonth+1)*sizeof(struct nameIdAndCounter));
+    if(stations->topThreeInMonth[month].topOfMonth == NULL){
+        printf("Error allocando memoria\n");
+        exit(EXIT_FAILURE);
+    }
+    stations->topThreeInMonth[month].topOfMonth[stations->topThreeInMonth[month].sizeOfTopOfMonth]->id = stationId;
+    stations->topThreeInMonth[month].topOfMonth[stations->topThreeInMonth[month].sizeOfTopOfMonth]->name = station->stationName;
+    stations->topThreeInMonth[month].topOfMonth[stations->topThreeInMonth[month].sizeOfTopOfMonth]->counter = 1;
+    stations->topThreeInMonth[month].sizeOfTopOfMonth += 1;
+}
+
+static void addToMostPopular(pStation startStation, size_t endId, char * endStationName){
+    for(int i = 0; i<startStation->sizeOfMostPopular; i++){
+        if(startStation->mostPopularEndStations[i]->id == endId){
+            startStation->mostPopularEndStations[i]->counter+=1;
+            return;
+        }
+    }
+    startStation->mostPopularEndStations = realloc(startStation->mostPopularEndStations, (startStation->sizeOfMostPopular + 1) * sizeof(struct nameIdAndCounter));
+    if(startStation->mostPopularEndStations == NULL){
+        printf("Error allocando memoria\n");
+        exit(EXIT_FAILURE);
+    }
+    startStation->mostPopularEndStations[startStation->sizeOfMostPopular]->counter = 1;
+    startStation->mostPopularEndStations[startStation->sizeOfMostPopular]->name = endStationName;
+    startStation->mostPopularEndStations[startStation->sizeOfMostPopular]->id = endId;
+    startStation->sizeOfMostPopular += 1;
+}
+
 void addRental(struct tm startDate,size_t startId,struct tm endDate, size_t endId, char association, stationsADT stations){
     pStation startStation,endStation;
     if ((startStation = existId(startId,stations->tree))==NULL||(endStation = existId(endId,stations->tree))==NULL){
@@ -152,16 +207,24 @@ void addRental(struct tm startDate,size_t startId,struct tm endDate, size_t endI
         startStation->amountRentalsByCasuals += 1;
     }
 
-    if (startId==endId){
+    if (startId == endId){
+        if(isValidForQ5(startDate,endDate,stations)){
+            addToTopThree(startDate.tm_mon, stations, startStation, startId);
+        }
         return;
     }
-    else if (startStation->oldestRental==NULL || difftime(mktime(&startDate),mktime(&(startStation->oldestRental->dateStart))) < 0 ){
+    else {
+        if (startStation->oldestRental == NULL || difftime(mktime(&startDate),mktime(&(startStation->oldestRental->dateStart))) < 0 ){
             pRental newRental=calloc(1,sizeof(struct rental));
             newRental->dateEnd=endDate;
             newRental->dateStart=startDate;
             newRental->stationNameEnd=endStation->stationName;
             free(startStation->oldestRental);
             startStation->oldestRental=newRental;
+        }
+        if(isWithinYearInterval(startDate.tm_year,endDate.tm_year, stations)){
+            addToMostPopular(startStation, endId, endStation->stationName);
+        }
     }
 }
 
@@ -351,4 +414,36 @@ size_t * getStartedTrips(stationsADT stations){
 
 size_t * getEndedTrips(stationsADT stations){
     return stations->endedTrips;
+}
+
+int compareNameAndCount(pNameIdAndCounter elem1, pNameIdAndCounter elem2){
+    int c;
+    if((c = elem1->counter - elem2->counter) != 0){
+        return c;
+    }
+    return strcmp(elem1->name,elem2->name);
+}
+
+char ** getTopThreeCircularRentalStationsByMonth(stationsADT stations, int month){
+    char * topThree[3] = {EMPTY_IDENTIFIER,EMPTY_IDENTIFIER,EMPTY_IDENTIFIER};
+    qsort(stations->topThreeInMonth[month].topOfMonth, stations->topThreeInMonth[month].sizeOfTopOfMonth,sizeof(pNameIdAndCounter),compareNameAndCount);
+    for(int i = 0; i<3 && i<stations->topThreeInMonth[month].sizeOfTopOfMonth; i++){
+        topThree[i]=stations->topThreeInMonth[month].topOfMonth[i]->name;
+    }
+    return topThree;
+}
+
+static char * getMostPopularFromArray(pStation station, size_t * amountOfTrips){
+    qsort(station->mostPopularEndStations, station->sizeOfMostPopular, sizeof(*(station->mostPopularEndStations)),compareNameAndCount);
+    *amountOfTrips = station->mostPopularEndStations[0]->counter;
+    return station->mostPopularEndStations[0];
+}
+
+char * getMostPopularFromStationInAlphaOrder(stationsADT stations, size_t * amountOfTrips){
+    if(stations->iterAlpha == NULL){
+        printf("No se a inicializado el iterador\n");
+        exit(EXIT_FAILURE);
+    }
+    char * toReturn = getMostPopularFromArray(stations->iterAlpha,amountOfTrips);
+    return toReturn;
 }

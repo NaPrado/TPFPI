@@ -135,9 +135,23 @@ void query3(stationsADT stations){
 }
 
 void query4(stationsADT stations){
-
+    toBeginAlpha(stations);
+    char * mostPopularName;
+    size_t amountOfTrips;
+    writeQ4Title();
+    while(hasNextAlpha(stations)){
+        mostPopularName = getMostPopularFromStationInAlphaOrder(stations,&amountOfTrips);
+        writeQ4(getStationNameAlpha(stations), mostPopularName, amountOfTrips);
+        nextAlpha(stations);
+    }
 }
 
 void query5(stationsADT stations){
-
+    char * months[MONTHS_IN_YEAR] = {"January","February","March","April","May","June","July","August","September","October","November","December"};
+    char ** topThree;
+    writeQ5Title();
+    for(int i = 0; i<MONTHS_IN_YEAR; i++){
+        topThree=getTopThreeCircularRentalStationsByMonth(stations, i);
+        writeQ5(months[i],topThree);
+    }
 }

@@ -11,7 +11,7 @@ typedef struct stationsCDT * stationsADT;
 /*
 Se crea el ADT en donde se guardan los datos y se allocan todos los recursos que necesita.
 */
-stationsADT newStationsGroup(void);
+stationsADT newStationsGroup(int floorYear, int ceilingYear);
 /*
 Ordena segun un criterio util a la query 1 los recursos guardados en el ADT. Recibe al ADT que se quiera ordenar.
 */
@@ -126,4 +126,8 @@ Retorna un vector de dim DAYS_IN_WEEK con la cantidad de viajes finalizados por 
 siendo v[0]= a la cantidad de los lunes, v[1]= a la de los martes, etc..
 */
 size_t * getEndedTrips(stationsADT stations);
+
+char * getMostPopularFromStationInAlphaOrder(stationsADT stations, size_t * amountOfTrips);
+
+char ** getTopThreeCircularRentalStationsByMonth(stationsADT stations, int month);
 #endif
