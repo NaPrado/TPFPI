@@ -247,6 +247,7 @@ static void freeStations(pStation stationList){
 }
 
 void freeAssets(stationsADT stations){
+    freeTree(stations->tree);
     freeStations(stations->firstAlpha);
     free(stations);
 }

@@ -6,16 +6,15 @@
 #include "stationADT.h"
 #include "read.h"
 
-#define ESCAPE_CERO '\0'
+#define ESCAPE_N '\n'
 #define SEMICOLON ";"
 #define MEMBER 1
 #define CASUAL 0 
 #define YEAR_ALIGMENT 1900 
 #define MONTH_ALIGMENT 1 
-#define MAXCHARSPERLINE 80
+#define MAXCHARSPERLINE 100
 #define CHARSBLOCK 10
-#define MAXNAMELENGTH 20
-#define MAX_COLS_ELEMS_STATIONS 4
+#define MAXNAMELENGTH 50
 #define DATE_ELEMS 6
 #define DATE_DELIM "- :"
 
@@ -31,26 +30,10 @@ enum dateForm{
 };
 
 
-
-static void getLine(char * str, FILE *stream) {
-    int i = 0;
-    for (char c;c==ESCAPE_CERO; i++, c=getc(stream))
-    {
-        if ((i%CHARSBLOCK)==0)
-        {
-            str=realloc(str,CHARSBLOCK+i);
-        }
-        *(str+i)=c;
-    }
-    str=realloc(str,i);
-    return;
-}
-
 static struct tm saveDate(char * date){
     char * token = strtok(date,DATE_DELIM);
     struct tm moment;
-    for (int i = 0; i < DATE_ELEMS ; i++){
-        if(token!=NULL){
+    for (int i = 0; token!=NULL ; i++){
             switch (i){
             case year:
                 moment.tm_year=atoi(token)-YEAR_ALIGMENT;
@@ -73,7 +56,6 @@ static struct tm saveDate(char * date){
             default:
                 break;
             }
-        }
         token = strtok(NULL, DATE_DELIM);
     }
     return moment;
@@ -88,19 +70,16 @@ static void readCSVFileBikes(char const *argv[],stationsADT stations){
         exit (EXIT_FAILURE);
     }
     
-    char * s = NULL;
+    char s[MAXCHARSPERLINE];
     //libera la primer linea
-    getLine(s,bikesFile);
-    free(s);
+    fgets(s,MAXCHARSPERLINE,bikesFile);
     while (!feof(bikesFile)){
-    s=NULL;
-    getLine(s, bikesFile);
+    fgets(s,MAXCHARSPERLINE, bikesFile);
     struct tm startDate;
     struct tm endDate;
     int idStart, idEnd, isMember;
     char * token=strtok(s,SEMICOLON);
-        for (int q = 0; q < MAX_COLS_ELEMS_BIKES; q++) {
-            if (token != NULL) {
+        for (int q = 0; token!=NULL ; q++) {
                 switch (q) {
                     case dateStart:
                         startDate=saveDate(token);
@@ -127,7 +106,6 @@ static void readCSVFileBikes(char const *argv[],stationsADT stations){
                     default:
                         break;
                 }
-            }
             token = strtok(NULL, SEMICOLON);
         }
         addRental(startDate,idStart,endDate,idEnd,isMember,stations);
@@ -148,16 +126,15 @@ void readCSVFileStation(char const * argv[],stationsADT stations){
         perror("Ocurrio un error mientrar se abria el archivo de las estaciones\n");
         exit (EXIT_FAILURE);
     }
-    char * s = NULL;
+    char s[MAXCHARSPERLINE];
     // Leer líneas desde el archivo
-    getLine(s, stationsFile);
+    fgets(s,MAXCHARSPERLINE,stationsFile);
     while (!feof(stationsFile)){
-        getLine(s, stationsFile);
+        fgets(s,MAXCHARSPERLINE,stationsFile);
         int id;
-        char name[MAXNAMELENGTH]={0};
+        char * name;
         char * token=strtok(s,SEMICOLON);
-        for (int q = 0; q < MAX_COLS_ELEMS_STATIONS; q++) {
-            if (token != NULL) {
+        for (int q = 0; token!=NULL ; q++) {
                 switch (q) {
                     case idStation:
                         // leo el id
@@ -165,18 +142,15 @@ void readCSVFileStation(char const * argv[],stationsADT stations){
                         break;
                     case stationName:
                         // leo el name
-                        strcpy(name,token);
+                        name=token;
                         break;
                     default:
                         break;
                 }
-            }
             token = strtok(NULL, SEMICOLON);  // Mueve la llamada a strtok fuera del switch
         }
-        addStation(stations,name,id);
+        //addStation(stations,name,id);
     }
-    
     fclose(stationsFile);
     readCSVFileBikes(argv,stations);
-    /* freeTree(tree); */
 }

@@ -134,7 +134,7 @@ void query3(stationsADT stations){
     fclose(csvQ3);
 }
 
-void query4(stationsADT stations){
+/* void query4(stationsADT stations){
     toBeginAlpha(stations);
     char * mostPopularName;
     size_t amountOfTrips;
@@ -154,4 +154,4 @@ void query5(stationsADT stations){
         topThree=getTopThreeCircularRentalStationsByMonth(stations, i);
         writeQ5(months[i],topThree);
     }
-}
+} */

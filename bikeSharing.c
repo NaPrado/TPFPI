@@ -10,7 +10,7 @@ int main(int argc, char const *argv[])
         printf("cantidad de argumentos incorrectos\n");
         exit(EXIT_FAILURE);
     }
-    stationsADT new= newStationsGroup();
+    stationsADT new= newStationsGroup(1,2);
     readCSVFileStation(argv,new);
     query1(new);
     query2(new);
