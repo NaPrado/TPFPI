@@ -21,10 +21,6 @@ INVALIDATE_INTERVAL en cualquiera de los dos parametros. El indicador validityFl
 */
 stationsADT newStationsGroup(int floorYear, int ceilingYear/* , int * validityFlag */);
 /*
-Ordena segun un criterio util a la query 1 los recursos guardados en el ADT. Recibe al ADT que se quiera ordenar.
-*/
-void orderByCount(stationsADT stations);
-/*
 Añade al ADT una estación. Recibe al ADT, el nombre de la estacion, a un arbol inicializado y la Id de la misma.
 */
 void addStation(stationsADT stations,char * stationsName, size_t stationsId);
@@ -37,106 +33,105 @@ void addRental(struct tm startDate,size_t startId,struct tm endDate, size_t endI
 Libera todos los recursos empleados por el ADT. Recibe al ADT que se quiera liberar.
 */
 void freeAssets(stationsADT stations);
+/*
+Ordena segun un criterio util a la query 1 los recursos guardados en el ADT. Recibe al ADT que se quiera ordenar.
+*/
+void orderByCount(stationsADT stations);
 
 /* 
-Se debe llamar a esta funcion para poder usar las otras funciones Alpha
-es un iniciador de iterador en orden alfabetico por nombres de estaciones
+Se debe llamar a esta funcion para poder usar las otras funciones de Q1
+es un iniciador de iterador en el orden solicitado para Q1
 Si se lo llama 2 veces se reinicia
 */
-void toBeginAlpha(stationsADT stations);
+void toBeginQ1(stationsADT stations);
 /*
-Verifica que el primer elemento por orden alfabetico de nombres no sea nullo 
+Consulta si existe un proximo elemento para Q1
 */
-int hasFirstAlpha(stationsADT stations);
+int hasNextQ1(stationsADT stations);
 /*
-Consulta si existe un proximo elemento en orden alphabetico por nombres de estaciones
+avanza el iterador de Q1
 */
-int hasNextAlpha(stationsADT stations);
-/*
-avanza el iterador por orden alphabetico por nombres de estaciones
-*/
-void nextAlpha(stationsADT stations);
-/* 
-Verifica si la estacion iterada por nombre alfabetico tiene algun alquiler, 
-para avanzar usar nextAlpha y no olvidar hasNextAlpha para chequear que exista
-*/
-int hasRentsAlpha(stationsADT stations);
-/*
-obtiene el nombre de la estacion iterada por nombre alfabetico,
-para avanzar usar nextAlpha y no olvidar hasNextAlpha para chequear que exista
-*/
-char * getStationNameAlpha(stationsADT stations);
-/*
-obtiene el nombre del destino del viaje mas antiguo desde la estacion iterada por nombre alfabetico,
-para avanzar usar nextAlpha y no olvidar hasNextAlpha para chequear que exista
-*/
-char * getOldestRentalStationNameEndAlpha(stationsADT stations);
-/*
-obtiene la fecha de partida del viaje mas antiguo desde la estacion iterada por nombre alfabetico,
-para avanzar usar nextAlpha y no olvidar hasNextAlpha para chequear que exista
-*/
-struct tm getOldestRentalStartDateAlpha(stationsADT stations);
-
-/* 
-Se debe llamar a esta funcion para poder usar las otras funciones Count
-es un iniciador de iterador Consulta si existe un proximo elemento por cantidad de viajes de totales
-Si se lo llama 2 veces se reinicia
-*/
-void toBeginCount(stationsADT stations);
-/*
-Verifica que el primer elemento  por cantidad de viajes de totales no sea nullo 
-*/
-int hasFirstCount(stationsADT stations);
-/*
-Consulta si existe un proximo elemento por cantidad de viajes de totales
-*/
-int hasNextCount(stationsADT stations);
-/*
-avanza el iterador por cantidad de viajes de totales;
-*/
-void nextCount(stationsADT stations);
-
-/*
-Funciones count, las siguientes funciones se usan en conjunto con las tres de arriba
-*/
-
+void nextQ1(stationsADT stations);
 /*
 Obtiene la cantidad de alquileres hechos por miembros en la estacion iterada, 
-para avanzar usar nextCount y no olvidar hasNextCount para chequear que exista
+para avanzar usar nextQ1 y no olvidar hasNextQ1 para chequear que exista
 */
-size_t getAmountRentalsByMembersCount(stationsADT stations);
+size_t getMembersQ1(stationsADT stations);
 /* 
 Obtiene la cantidad de alquileres hechos por casuales en la estacion iterada, 
-para avanzar usar nextCount y no olvidar hasNextCount para chequear que exista
+para avanzar usar nextQ1 y no olvidar hasNextQ1 para chequear que exista
 */
-size_t getAmountRentalsByCasualsCount(stationsADT stations);
+size_t getCasualsQ1(stationsADT stations);
 /*
 Obtiene la cantidad de alquileres hechos en la estacion iterada, 
-para avanzar usar nextCount y no olvidar hasNextCount para chequear que exista
+para avanzar usar nextQ1 y no olvidar hasNextQ1 para chequear que exista
 */
-size_t getTotalAmountRentalsCount(stationsADT stations);
+size_t getTotalQ1(stationsADT stations);
 /*
 Obtiene el nombre de la estacion iterada, 
 para avanzar usar nextCount y no olvidar hasNextCount para chequear que exista
 */
-char * getStationNameCount(stationsADT stations);
+char * getStationNameQ1(stationsADT stations);
+/* 
+Se debe llamar a esta funcion para poder usar las otras funciones Q2
+es un iniciador de iterador Consulta si existe un proximo elemento por Q2
+Si se lo llama 2 veces se reinicia
+*/
+void toBeginQ2(stationsADT stations);
+/*
+Consulta si existe un proximo elemento por Q2
+*/
+int hasNextQ2(stationsADT stations);
+/*
+avanza el iterador Q2
+*/
+void nextQ2(stationsADT stations);
+/* 
+Verifica si la estacion iterada por Q2 tiene algun alquiler, 
+para avanzar usar nextQ2 y no olvidar hasNextQ2 para chequear que exista
+*/
+int hasRentsQ2(stationsADT stations);
+/*
+obtiene el nombre de la estacion iterada por Q2,
+para avanzar usar nextQ2 y no olvidar hasNextQ2 para chequear que exista
+*/
+char * getStationNameQ2(stationsADT stations);
+/*
+obtiene el nombre del destino del viaje mas antiguo desde la estacion iterada por Q2,
+para avanzar usar nextQ2 y no olvidar hasNextQ2 para chequear que exista
+*/
+char * getOldestRentalStationNameEndQ2(stationsADT stations);
+/*
+obtiene la fecha de partida del viaje mas antiguo desde la estacion iterada por Q2,
+para avanzar usar nextQ2 y no olvidar hasNextQ2 para chequear que exista
+*/
+struct tm getOldestRentalStartDateQ2(stationsADT stations);
 
-
-int hasRentsAlpha(stationsADT stations);
 
 /*
 Retorna un vector de dim DAYS_IN_WEEK con la cantidad de viajes empezados por dia de la semana
 siendo v[0]= a la cantidad de los lunes, v[1]= a la de los martes, etc..
 */
-size_t * getStartedTrips(stationsADT stations);
+size_t * getStartedTripsQ3(stationsADT stations);
 /*
 Retorna un vector de dim DAYS_IN_WEEK con la cantidad de viajes finalizados por dia de la semana
 siendo v[0]= a la cantidad de los lunes, v[1]= a la de los martes, etc..
 */
-size_t * getEndedTrips(stationsADT stations);
+size_t * getEndedTripsQ3(stationsADT stations);
 /*
-Para el correcto funcionamiento de las siguientes dos funciones es necesario que el intervalo cargado en newStationsGroup sea valido. Fallaran de no serlo.
+Se debe llamar a esta funcion para poder usar las otras funciones Q4
+es un iniciador de iterador Consulta si existe un proximo elemento por Q4
+Si se lo llama 2 veces se reinicia
 */
+void toBeginQ4(stationsADT stations);
+/*
+Consulta si existe un proximo elemento por Q4
+*/
+int hasNextQ4(stationsADT stations);
+/*
+avanza el iterador Q4
+*/
+void nextQ4(stationsADT stations);
 /*
 Devuelve un string con el nombre de la estacion mas popular para aquella en la que el iterador alfabetico esta posicionado. Es responsabilidad del usuario
 que el iterador este inicializado y avanzar por el mismo. Ademas recibe por parametro un puntero a la cantidad de alquileres que hayan terminado en la

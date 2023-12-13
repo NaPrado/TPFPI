@@ -15,6 +15,8 @@ int main(int argc, char const *argv[])
     query1(new);
     query2(new);
     query3(new);
+   /*  query4(new);
+    query5(new); */
     freeAssets(new);
     return 0;
 }

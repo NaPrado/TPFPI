@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <strings.h>
 #include "htmlTable.h"
@@ -10,7 +12,7 @@
 #define THIRD 2
 #define STRMAXLONG 20
 
-/* static int countDigit(int num) {
+static int countDigit(int num) {
     int count = 0;
 
     // Manejar caso especial para el número 0
@@ -25,7 +27,7 @@
     }
 
     return count;
-} */
+}
 
 /* char * intToAlocStr(int num){
     char * str=NULL;
@@ -43,24 +45,28 @@
 }
  */
 
+
+
 static void writeQ1Rec(stationsADT stations, htmlTable tablaQ1, FILE * csvQ1){
     size_t members=getAmountRentalsByMembersCount(stations);
     size_t casuals=getAmountRentalsByCasualsCount(stations);
     size_t total=getTotalAmountRentalsCount(stations);
-    char membersStr[STRMAXLONG]={0};
-    sprintf(membersStr,"%lu",members);
-    char casualsStr[STRMAXLONG]={0};
-    sprintf(casualsStr,"%lu",casuals);
-    char totalStr[STRMAXLONG]={0};
-    sprintf(totalStr,"%lu",total);
-    char stationName[STRMAXLONG];
-    *stationName=getStationNameCount(stations);
+
+    char * membersStr=calloc(1,sizeof(char)*(countDigit(members)+1));
+    char *casualsStr=calloc(1,sizeof(char)*(countDigit(casuals)+1));
+    char *totalStr=calloc(1,sizeof(char)*(countDigit(total)+1));
+
+    sprintf(membersStr,"%zu",members);
+    sprintf(casualsStr,"%zu",casuals);
+    sprintf(totalStr,"%zu",total);
+
+    char * stationName=getStationNameCount(stations);
+
     addHTMLRow(tablaQ1,stationName,membersStr,casualsStr,totalStr);
     writeRowQ1(csvQ1,stationName,membersStr,casualsStr,totalStr);
-    /* free(membersStr);
+    free(membersStr);
     free(casualsStr);
-    free(totalStr); */
-
+    free(totalStr);
     if (!hasNextCount(stations)){
         return;
     }
@@ -90,8 +96,8 @@ static void writeQ2Rec(stationsADT stations, htmlTable tablaQ2, FILE * csvQ2){
     {
         if (hasRentsAlpha(stations))
         {
-            char * stationNamestr = getStationNameAlpha(stations);
-            char * stationNameEndStr = getOldestRentalStationNameEndAlpha(stations);
+            char * stationNamestr = strcpy(stationNamestr,getStationNameAlpha(stations));
+            char * stationNameEndStr = strcpy(stationNameEndStr,getOldestRentalStationNameEndAlpha(stations));
             struct tm startDate = getOldestRentalStartDateAlpha(stations);
             char * startDateStr = calloc(1,sizeof(char)*QUERY_2_DATE_FORMAT_LONGITUD);
             strftime(startDateStr,QUERY_2_DATE_FORMAT_LONGITUD,"%d/%m/%Y %H:%M",&(startDate));
@@ -162,7 +168,7 @@ void query4(stationsADT stations){
     }
 }
 
-void query5(stationsADT stations){
+/* void query5(stationsADT stations){
     FILE * csvQ5 = newFile("query5.csv");
     writeHeaderQ4(csvQ5);
     htmlTable tablaQ5 = newTable("query5.html",4,"month","loopsTop1St","loopsTop2St","loopsTop3St");
@@ -173,4 +179,4 @@ void query5(stationsADT stations){
         writeRowQ5(csvQ5,months[i],topThree[FIRST],topThree[SECOND],topThree[THIRD]);
         addHTMLRow(tablaQ5,months[i],topThree[FIRST],topThree[SECOND],topThree[THIRD]);
     }
-}
+} */
