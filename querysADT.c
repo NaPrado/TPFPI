@@ -8,6 +8,7 @@
 #define FIRST 0
 #define SECOND 1
 #define THIRD 2
+#define STRMAXLONG 20
 
 /* static int countDigit(int num) {
     int count = 0;
@@ -26,7 +27,7 @@
     return count;
 } */
 
-char * intToAlocStr(int num){
+/* char * intToAlocStr(int num){
     char * str=NULL;
     int i=0;
     while (num!=0){
@@ -40,21 +41,25 @@ char * intToAlocStr(int num){
     *(str+i)='\0';
     return str;
 }
-
+ */
 
 static void writeQ1Rec(stationsADT stations, htmlTable tablaQ1, FILE * csvQ1){
     size_t members=getAmountRentalsByMembersCount(stations);
     size_t casuals=getAmountRentalsByCasualsCount(stations);
     size_t total=getTotalAmountRentalsCount(stations);
-    char * membersStr=intToAlocStr(members);
-    char * casualsStr=intToAlocStr(casuals);
-    char * totalStr=intToAlocStr(total);
-    char * stationName = getStationNameCount(stations);
-    addHTMLRow(tablaQ1,stationName,members,casuals,total);
+    char membersStr[STRMAXLONG]={0};
+    sprintf(membersStr,"%lu",members);
+    char casualsStr[STRMAXLONG]={0};
+    sprintf(casualsStr,"%lu",casuals);
+    char totalStr[STRMAXLONG]={0};
+    sprintf(totalStr,"%lu",total);
+    char stationName[STRMAXLONG];
+    *stationName=getStationNameCount(stations);
+    addHTMLRow(tablaQ1,stationName,membersStr,casualsStr,totalStr);
     writeRowQ1(csvQ1,stationName,membersStr,casualsStr,totalStr);
-    free(membersStr);
+    /* free(membersStr);
     free(casualsStr);
-    free(totalStr);
+    free(totalStr); */
 
     if (!hasNextCount(stations)){
         return;
@@ -125,12 +130,14 @@ void query3(stationsADT stations){
     htmlTable tablaQ3 = newTable("query3.html",3,"weekDay","startedTrips","endedTrips");
     for (size_t i = 0; i < DAYS_IN_WEEK; i++)
     {
-        char *sT=intToAlocStr(startedTrips[i]);
-        char *eT=intToAlocStr(endedTrips[i]);
+        char sT[STRMAXLONG];
+        sprintf(sT,"%lu",startedTrips[i]);
+        char eT[STRMAXLONG];
+        sprintf(eT,"%lu",endedTrips[i]);
         writeRowQ3(csvQ3,*(weekDays+i),sT,eT);
         addHTMLRow(tablaQ3,*(weekDays+i),sT,eT);
-        free(sT);
-        free(eT);
+        /* free(sT);
+        free(eT); */
     }
     closeHTMLTable(tablaQ3);
     fclose(csvQ3);
@@ -145,9 +152,12 @@ void query4(stationsADT stations){
     size_t amountOfTrips;
     while(hasNextAlpha(stations)){
         mostPopularName = getMostPopularFromStationInAlphaOrder(stations,&amountOfTrips);
-        char name =getStationNameAlpha(stations);
-        writeRowQ4(csvQ4,name, mostPopularName, amountOfTrips);
-        addHTMLRow(tablaQ4,name, mostPopularName, amountOfTrips);
+        char * name =getStationNameAlpha(stations);
+        char * amountOfTripsStr=NULL;
+        sscanf(amountOfTripsStr,"%lu",&amountOfTrips);
+        writeRowQ4(csvQ4,name, mostPopularName, amountOfTripsStr);
+        addHTMLRow(tablaQ4,name, mostPopularName, amountOfTripsStr);
+        free(amountOfTripsStr);
         nextAlpha(stations);
     }
 }

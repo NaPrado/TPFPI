@@ -99,18 +99,19 @@ static int isValidInterval(int floor, int ceil){
     return ( floor >= 0 && (ceil == INDICATOR_HAS_NO_UPPER_LIMIT || ceil >= 0) && (ceil == INDICATOR_HAS_NO_UPPER_LIMIT)?1:floor <= ceil);
 }
 
-stationsADT newStationsGroup(int floorYear, int ceilingYear, int * validityFlag){
+stationsADT newStationsGroup(int floorYear, int ceilingYear/* , int * validityFlag */){
     stationsADT new = calloc(1,sizeof(struct stationsCDT));
     new->tree=newtree();
+    int validityFlag;
     if(isValidInterval(floorYear,ceilingYear)){
         new->ceilingYear = ceilingYear;
         new->floorYear = floorYear;
-        *validityFlag = 1;
+        validityFlag = 1;
     }
     else{
-        *validityFlag = 0;
+        validityFlag = 0;
     }
-    new->validForQ4AndQ5 = *validityFlag;
+    new->validForQ4AndQ5 = validityFlag;
     return new;
 }
 
@@ -133,7 +134,7 @@ static pStation addStationRec(pStation alphaList,char * stationName, bstADT tree
 
 
 void addStation(stationsADT stations,char * stationName, size_t stationId){
-    char * name =copyString(stationName);
+    char * name =stationName/* copyString(stationName) */;
     stations->firstAlpha=addStationRec(stations->firstAlpha,name,stations->tree,stationId);
     return;
 }
@@ -245,12 +246,12 @@ static void freeStations(pStation stationList){
     if(stationList == NULL){
         return;
     }
+    /* free(stationList->stationName); */
     freeRentals(stationList);
     freeStations(stationList->tailAlpha);
     if(stationList->mostPopularEndStations != NULL){
         free(stationList->mostPopularEndStations);
     }
-    free(stationList->stationName);
     free(stationList);
     return;
 }
@@ -442,7 +443,7 @@ void getTopThreeCircularRentalStationsByMonth(stationsADT stations, int month, c
         exit(EXIT_FAILURE);
     }
     if(stations->validForQ4AndQ5){
-        printf("No se puede ejucatar esta funcion debido a invalidez de intervalo de años\n");
+        printf("No se puede ejecutar esta funcion debido a invalidez de intervalo de años\n");
         exit(EXIT_FAILURE);
     }
     qsort(stations->topThreeInMonth[month].topOfMonth, stations->topThreeInMonth[month].sizeOfTopOfMonth,sizeof(pNameIdAndCounter),compareNameAndCount);
@@ -469,7 +470,7 @@ char * getMostPopularFromStationInAlphaOrder(stationsADT stations, size_t * amou
         exit(EXIT_FAILURE);
     }
     if(stations->validForQ4AndQ5){
-        printf("No se puede ejucatar esta funcion debido a invalidez de intervalo de años\n");
+        printf("No se puede ejecutar esta funcion debido a invalidez de intervalo de años\n");
         exit(EXIT_FAILURE);
     }
     char * toReturn = getMostPopularFromArray(stations->iterAlpha,amountOfTrips);

@@ -19,7 +19,7 @@ parametros para el funcionamiento de algunas funciones. De ser un intervalo inva
 una cota superior usar INDICATOR_HAS_NO_UPPER_LIMIT. Si se quiere asegurar por alguna razon que el intervalo es invalido se puede usar la constate
 INVALIDATE_INTERVAL en cualquiera de los dos parametros. El indicador validityFlag esta para que el usuario pueda saber si el intervalo enviado es valido.
 */
-stationsADT newStationsGroup(int floorYear, int ceilingYear, int * validityFlag);
+stationsADT newStationsGroup(int floorYear, int ceilingYear/* , int * validityFlag */);
 /*
 Ordena segun un criterio util a la query 1 los recursos guardados en el ADT. Recibe al ADT que se quiera ordenar.
 */

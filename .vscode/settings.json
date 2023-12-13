@@ -11,6 +11,7 @@
         "time.h": "c",
         "stdlib.h": "c",
         "writecsv.h": "c",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "types.h": "c"
     }
 }

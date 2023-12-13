@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include "htmlTable.h"
 #include "writeCSV.h"
-#define DELIM ';'
-#define ESCAPE_N '\n'
+#define DELIM ";"
+#define ESCAPE_N "\n"
 #define TOPQ1 4
 #define LASTQ1 (TOPQ1-1)
 #define TOPQ2 3
@@ -14,7 +14,7 @@
 #define LASTQ4 (TOPQ4-1)
 #define TOPQ5 4
 #define LASTQ5 (TOPQ5-1)
-#define WRITETEXT 'wt'
+#define WRITETEXT "wt"
 
 
 
@@ -29,7 +29,7 @@ FILE * newFile(char * name){
 }
 
 void writeHeaderQ1(FILE * stream){
-    fputs('bikeStation;memberTrips;casualTrips;allTrips\n',stream);
+    fputs("bikeStation;memberTrips;casualTrips;allTrips\n",stream);
 }
 
 void writeRowQ1(FILE * stream,char * name,char * memberTrips,char * casualTrips,char * allTrips){
@@ -95,7 +95,7 @@ void writeRowQ3(FILE * stream,char * weekday,char * startedTrips,char * endedTri
 }
 
 void writeHeaderQ4(FILE * stream){
-    fputs('bikeStation;mostPopRouteEndStation;mostPopRouteTrips\n',stream);
+    fputs("bikeStation;mostPopRouteEndStation;mostPopRouteTrips\n",stream);
 }
 
 void writeRowQ4(FILE * stream,char * name,char * mostPopRouteEndStation,char * mostPopRouteTrips){
@@ -117,7 +117,7 @@ void writeRowQ4(FILE * stream,char * name,char * mostPopRouteEndStation,char * m
 }
 
 void writeHeaderQ5(FILE * stream){
-    fputs('month;loopsTop1St;loopsTop2St;loopsTop3St\n',stream);
+    fputs("month;loopsTop1St;loopsTop2St;loopsTop3St\n",stream);
 }
 
 void writeRowQ5(FILE * stream,char * month,char * loopsTop1St,char * loopsTop2St,char * loopsTop3St){

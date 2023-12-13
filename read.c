@@ -14,7 +14,7 @@
 #define MONTH_ALIGMENT 1 
 #define MAXCHARSPERLINE 100
 #define CHARSBLOCK 10
-#define MAXNAMELENGTH 50
+#define MAXNAMELENGTH 20
 #define DATE_ELEMS 6
 #define DATE_DELIM "- :"
 
