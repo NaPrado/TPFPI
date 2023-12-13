@@ -1,4 +1,4 @@
-#include "tree.h"
+#include "treeADT.h"
 #include <stdio.h>
 
 typedef struct node * pNode;

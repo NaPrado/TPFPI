@@ -152,3 +152,11 @@ void query3(stationsADT stations){
     closeHTMLTable(tablaQ3);
     fclose(csvQ3);
 }
+
+void query4(stationsADT stations){
+
+}
+
+void query5(stationsADT stations){
+
+}

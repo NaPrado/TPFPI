@@ -18,4 +18,8 @@ de viajes inciados y finalizados por cada dia de la semana.
 */
 void query3(void * stations);
 
+void query4(void * stations);
+
+void query5(void * stations);
+
 #endif

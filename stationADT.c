@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-
 #include "stationADT.h"
-#include "tree.h"
+#include "treeADT.h"
 
 
 #define MEMBER 1
