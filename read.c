@@ -149,7 +149,7 @@ void readCSVFileStation(char const * argv[],stationsADT stations){
                 }
             token = strtok(NULL, SEMICOLON);  // Mueve la llamada a strtok fuera del switch
         }
-        //addStation(stations,name,id);
+        addStation(stations,name,id);
     }
     fclose(stationsFile);
     readCSVFileBikes(argv,stations);

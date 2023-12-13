@@ -417,12 +417,14 @@ size_t * getEndedTrips(stationsADT stations){
     return stations->endedTrips;
 }
 
-int compareNameAndCount(pNameIdAndCounter elem1, pNameIdAndCounter elem2){
+int compareNameAndCount(const void * elem1,const void * elem2){
     int c;
-    if((c = elem1->counter - elem2->counter) != 0){
+    pNameIdAndCounter elemA = (pNameIdAndCounter)elem1;
+    pNameIdAndCounter elemB = (pNameIdAndCounter)elem2;
+    if((c = elemA->counter - elemB->counter) != 0){
         return c;
     }
-    return strcmp(elem1->name,elem2->name);
+    return strcmp(elemA->name,elemB->name);
 }
 
 char ** getTopThreeCircularRentalStationsByMonth(stationsADT stations, int month){
@@ -431,13 +433,13 @@ char ** getTopThreeCircularRentalStationsByMonth(stationsADT stations, int month
     for(int i = 0; i<3 && i<stations->topThreeInMonth[month].sizeOfTopOfMonth; i++){
         topThree[i]=stations->topThreeInMonth[month].topOfMonth[i]->name;
     }
-    return topThree;
+    return topThree;//hacerlo maloqueable o retornar por parametro
 }
 
 static char * getMostPopularFromArray(pStation station, size_t * amountOfTrips){
     qsort(station->mostPopularEndStations, station->sizeOfMostPopular, sizeof(*(station->mostPopularEndStations)),compareNameAndCount);
     *amountOfTrips = station->mostPopularEndStations[0]->counter;
-    return station->mostPopularEndStations[0];
+    return station->mostPopularEndStations[0]->name;
 }
 
 char * getMostPopularFromStationInAlphaOrder(stationsADT stations, size_t * amountOfTrips){
