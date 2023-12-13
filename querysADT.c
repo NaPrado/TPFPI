@@ -2,7 +2,7 @@
 #include <strings.h>
 #include "htmlTable.h"
 #include "stationADT.h"
-#define ESCAPE_CERO 1
+#define ESCAPE_CERO_SPACE 1
 #define QUERY_2_DATE_FORMAT_LONGITUD 20
 
 static int countDigit(int num) {
@@ -46,9 +46,9 @@ static void writeQ1Rec(stationsADT stations, htmlTable tablaQ1, FILE * csvQ1){
     size_t members=getAmountRentalsByMembersCount(stations);
     size_t casuals=getAmountRentalsByCasualsCount(stations);
     size_t total=getTotalAmountRentalsCount(stations);
-    char * membersStr=calloc(1,(countDigit(members)+ESCAPE_CERO));
-    char * casualsStr=calloc(1,(countDigit(casuals)+ESCAPE_CERO));
-    char * totalStr=calloc(1,(countDigit(total)+ESCAPE_CERO));
+    char * membersStr=calloc(1,(countDigit(members)+ESCAPE_CERO_SPACE));
+    char * casualsStr=calloc(1,(countDigit(casuals)+ESCAPE_CERO_SPACE));
+    char * totalStr=calloc(1,(countDigit(total)+ESCAPE_CERO_SPACE));
     
     sprintf(membersStr,"%zu",members);
     sprintf(casualsStr,"%zu",casuals);
@@ -69,6 +69,7 @@ static void writeQ1Rec(stationsADT stations, htmlTable tablaQ1, FILE * csvQ1){
 }
 
 void query1(stationsADT stations){
+    orderByCount(stations);
     errno = 0;
     FILE * csvQ1 = fopen("query1.csv","wt");
     if(errno != 0 || csvQ1==NULL){

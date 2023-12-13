@@ -1,0 +1,16 @@
+COMPILER=gcc
+OUTPUT_FILE=test.out
+FRONT=test.c
+
+all: programa clean
+
+programa: $(FRONT) 
+	$(COMPILER) -DNYC=\1 -o $(OUTPUT_FILE) $(FRONT) 
+
+test.o: test.c
+	$(COMPILER) -DNYC=\1 -c test.c 
+clean:
+	rm -f *.o
+#ifndef NYC 
+#define NYC 0
+#endif

@@ -4,234 +4,233 @@
 #include <string.h>
 #include <errno.h>
 #include "stationADT.h"
+#include "read.h"
 
+#define ESCAPE_CERO "\0"
+#define SEMICOLON ";"
 #define MEMBER 1
 #define CASUAL 0 
+#define YEAR_ALIGMENT 1900 
+#define MONTH_ALIGMENT 1 
+#define MAXCHARSPERLINE 80
+#define CHARSBLOCK 10
+#define MAXNAMELENGTH 20
+#define MAX_COLS_ELEMS_STATIONS 4
+#define DATE_ELEMS 6
+#define DATE_DELIM "- :"
 
-static __ssize_t getLine(char **lineptr, size_t *n, FILE *stream) {
-    if (*lineptr == NULL || *n == 0) {
-        // Si no hay un búfer asignado o el tamaño es 0, asignar un nuevo búfer
-        *n = 10; // Puedes ajustar el tamaño inicial según tus necesidades
-        *lineptr = (char *)malloc(*n);
-        if (*lineptr == NULL) {
-            return -1; // Error de asignación de memoria
+#ifndef FORMATNYC
+#define FORMATNYC 1
+#endif
+#ifndef FORMATMON
+#define FORMATMON 0
+#endif
+
+#if FORMATNYC
+#define NYCBIKES_FORMAT_ENUM \
+    dateStart, \
+    startedId, \
+    dateEnd, \
+    endedId, \
+    rideableType, \
+    member
+
+#define NYCSTATIONS_FORMAT_ENUM \
+    stationName, \
+    latitude, \
+    longitude, \
+    idStation
+
+enum NYCBIKES {
+    NYCBIKES_FORMAT_ENUM
+};
+
+enum NYCSTATIONS {
+    NYCSTATIONS_FORMAT_ENUM
+};
+
+#define MAX_COLS_ELEMS_BIKES 6
+
+#elif FORMATMON
+#define MONBIKES_FORMAT_ENUM \
+    dateStart, \
+    startedId, \
+    dateEnd, \
+    endedId, \
+    member
+
+#define MONSTATIONS_FORMAT_ENUM \
+    idStation, \
+    stationName, \
+    latitude, \
+    longitude
+
+enum MONBIKES {
+    MONBIKES_FORMAT_ENUM
+};
+
+enum MONSTATIONS {
+    MONSTATIONS_FORMAT_ENUM
+};
+
+#define MAX_COLS_ELEMS_BIKES 6
+
+#endif
+
+enum dateForm{
+    year=0,
+    month,
+    day,
+    hour,
+    mins,
+    secs,
+};
+
+
+
+static void getLine(char * str, FILE *stream) {
+    int i = 0;
+    for (int c;c==ESCAPE_CERO; i++, c=getc(stream))
+    {
+        if ((i%CHARSBLOCK)==0)
+        {
+            str=realloc(str,CHARSBLOCK+i);
         }
+        *(str+i)=c;
     }
-
-    size_t pos = 0;
-    int c;
-
-    while ((c = fgetc(stream)) != EOF && c != '\n') {
-        (*lineptr)[pos++] = c;
-
-        // Verificar si necesitamos redimensionar el búfer
-        if (pos >= *n - 1) {
-            *n *= 2; // Duplicar el tamaño del búfer
-            char *new_lineptr = (char *)realloc(*lineptr, *n);
-            if (new_lineptr == NULL) {
-                free(*lineptr);
-                return -1; // Error de realocación de memoria
-            }
-            *lineptr = new_lineptr;
-        }
-    }
-
-    if (pos == 0 && c == EOF) {
-        return -1; // No se leyó ninguna línea y se alcanzó el final del archivo
-    }
-
-    (*lineptr)[pos] = '\0'; // Agregar el carácter nulo al final de la línea
-    return pos; // Devolver el número de caracteres leídos
+    str=realloc(str,i);
+    return;
 }
+
+static struct tm saveDate(char * date){
+    char * token = strtok(date,DATE_DELIM);
+    struct tm moment;
+    for (int i = 0; i < DATE_ELEMS ; i++){
+        if(token!=NULL){
+            switch (i){
+            case year:
+                moment.tm_year=atoi(token)-YEAR_ALIGMENT;
+                break;
+            case month:
+                moment.tm_mon=atoi(token)-MONTH_ALIGMENT;
+                break;
+            case day:
+                moment.tm_mday=atoi(token);
+                break;
+            case hour:
+                moment.tm_hour=atoi(token);
+                break;
+            case mins:
+                moment.tm_min=atoi(token);
+                break;
+            case secs:
+                moment.tm_sec=atoi(token);
+                break;
+            default:
+                break;
+            }
+        }
+        token = strtok(NULL, DATE_DELIM);
+    }
+}
+
 
 static void readCSVFileBikes(char const *argv[],stationsADT stations){
     errno=0;
-    FILE * bikesMON = fopen( argv[1], "rt");
-    if(errno != 0 && bikesMON==NULL){
-        perror("Ocurrio un error mientrar se abria el archivo de viajes realizados en Montreal\n");
+    FILE * bikesFile = fopen( argv[1], "rt");
+    if(errno != 0 && bikesFile==NULL){
+        perror("Ocurrio un error mientrar se abria el archivo de viajes realizados\n");
         exit (EXIT_FAILURE);
     }
     
     char * s = NULL;
-    size_t longitud = 0;
-    // Leer líneas desde el archivo
-    errno=0;
-    if(getLine(&s, &longitud, bikesMON)==-1){
-        perror("Ocurrio un error leyendo la primer linea del archivo de viajes realizados en Montreal\n");
-        exit (EXIT_FAILURE);
-    }
+    //libera la primer linea
+    getLine(s,bikesFile);
     free(s);
-    while (!feof(bikesMON)){
+    while (!feof(bikesFile)){
     s=NULL;
-    getLine(&s, &longitud, bikesMON);
+    getLine(s, bikesFile);
     struct tm startDate;
     struct tm endDate;
     int idStart, idEnd, isMember;
-            // Formato: yyyy-mm-dd HH:mm:ss;idStart;yyyy-mm-dd HH:mm:ss;idEnd;isMember
-    int result = sscanf(s, "%d-%d-%d %d:%d:%d;%d;%d-%d-%d %d:%d:%d;%d;%d",
-                        &(startDate.tm_year), &(startDate.tm_mon), &(startDate.tm_mday),
-                        &(startDate.tm_hour), &(startDate.tm_min), &(startDate.tm_sec),
-                        &idStart,
-                        &(endDate.tm_year), &(endDate.tm_mon), &(endDate.tm_mday),
-                        &(endDate.tm_hour), &(endDate.tm_min), &(endDate.tm_sec),
-                        &idEnd,
-                        &isMember);
-        //seteo de fechas
-        startDate.tm_isdst = -1;
-        startDate.tm_year=startDate.tm_year-1900;
-        startDate.tm_mon=startDate.tm_mon-1, 
-        endDate.tm_year=endDate.tm_year-1900;
-        endDate.tm_mon=startDate.tm_mon-1;
-
-        if (result == 15){ // La cadena se analizó correctamente, los valores están en las variables correspondientes.
-            addRental(startDate,idStart,endDate,idEnd,isMember,stations);
+    char * token=strtok(s,SEMICOLON);
+        for (int q = 0; q < MAX_COLS_ELEMS_BIKES; q++) {
+            if (token != NULL) {
+                switch (q) {
+                    case dateStart:
+                        startDate=saveDate(token);
+                        break;
+                    case startedId:
+                        idStart=atoi(token);
+                        break;
+                    case dateEnd:
+                        endDate=saveDate(token);
+                        break;
+                    case endedId:
+                        idEnd=atoi(token);
+                        break;
+                    case member:
+                        if (FORMATMON)
+                        {
+                            isMember=atoi(token);
+                        }
+                        else if (FORMATNYC)
+                        {
+                            isMember=(*token=='m');
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+            token = strtok(NULL, SEMICOLON);
         }
-        else if (result!=0){// Hubo un problema al analizar la cadena
-            printf("Error al analizar la cadena\n");
-        }
-        free(s);
     }
-    fclose(bikesMON);
+    fclose(bikesFile);
 }
 
 void readCSVFileStation(char const * argv[],stationsADT stations){
-    errno = 0;
-    FILE * stationsMON = fopen( argv[2], "rt");
-    if(errno != 0 || stationsMON==NULL){
-        perror("Ocurrio un error mientrar se abria el archivo de las estaciones de Montreal\n");
-        exit (EXIT_FAILURE);
-    }
-    char * s = NULL;
-    size_t longitud = 0;
-    // Leer líneas desde el archivo
-    errno=0;
-    if(getLine(&s, &longitud, stationsMON)==-1){
-        perror("Ocurrio un error leyendo la primer linea del archivo de estaciones de Montreall\n");
-        exit (EXIT_FAILURE);
-    }
-    while (!feof(stationsMON)){
-        getLine(&s, &longitud, stationsMON);
-        int id;
-        char * token=strtok(s,";");
-        for (int q = 0; q < 4; q++) {
-            if (token != NULL && q < 2) {
-                switch (q) {
-                    case 0:
-                        // leo el id
-                        id = atoi(token);
-                        break;
-                    case 1:
-                        // leo el name
-                        addStation(stations,token,id);
-                        break;
-                    default:
-                        break;
-                }
-            }
-            token = strtok(NULL, ";");  // Mueve la llamada a strtok fuera del switch
-        }
-    }
-    
-    fclose(stationsMON);
-    readCSVFileBikes(argv,stations);
-    orderByCount(stations);//esto esta tecnicamente mal
-    /* freeTree(tree); */
-}
-
-/* static void inicializerBikesNYCFormat(char const *argv[],stationADT station){
-    errno=0;
-    FILE * bikesNYC = fopen( argv[1], "rt");
-    if(errno != 0 && bikesNYC==NULL){
-        perror("Ocurrio un error mientrar se abria el archivo de viajes realizados en Nueva York\n");
+    if (FORMATMON && FORMATNYC)
+    {
+        perror("Ocurrio un error en compilacion, se debe aclarar en el makefile el formato de que ciudad a usar\n");
         exit (EXIT_FAILURE);
     }
     
-    char * s = NULL;
-    size_t longitud = 0;
-    errno=0;
-    if(getLine(&s, &longitud, bikesNYC)==-1){
-        perror("Ocurrio un error leyendo la primer linea del archivo de viajes realizados en Nueva York\n");
-        exit (EXIT_FAILURE);
-    }
-    free(s);
-    while (!feof(bikesNYC)){
-        s=NULL;
-        getLine(&s, &longitud, bikesNYC);
-
-        struct tm startDate;
-        struct tm endDate;
-        int idStart, idEnd;
-        char isMember;
-                // Formato: yyyy-mm-dd HH:mm:ss;idStart;yyyy-mm-dd HH:mm:ss;idEnd;rideable_type;member_casual
-        int result = sscanf(s, "%d-%d-%d %d:%d:%d.000000;%d;%d-%d-%d %d:%d:%d.000000;%d;%*[^;];%c\n",
-                            &(startDate.tm_year), &(startDate.tm_mon), &(startDate.tm_mday), 
-                            &(startDate.tm_hour), &(startDate.tm_min), &(startDate.tm_sec),
-                            &idStart,
-                            &(endDate.tm_year), &(endDate.tm_mon), &(endDate.tm_mday),
-                            &(endDate.tm_hour), &(endDate.tm_min), &(endDate.tm_sec),
-                            &idEnd,
-                            &isMember);
-        //seteo de fechas
-        startDate.tm_isdst = -1;
-        startDate.tm_year=startDate.tm_year-1900;
-        startDate.tm_mon=startDate.tm_mon-1, 
-        endDate.tm_year=endDate.tm_year-1900;
-        endDate.tm_mon=startDate.tm_mon-1;
-        isMember=(isMember=='m')?MEMBER:CASUAL;
-
-        if (result == 15) {
-            // La cadena se analizó correctamente, los valores están en las variables correspondientes.
-            addRental(startDate,idStart,endDate,idEnd,isMember,station);
-        } 
-        else if (result!=0){// Hubo un problema al analizar la cadena
-            printf("Error al analizar la cadena\n");
-        }
-        free(s);
-    }
-    fclose(bikesNYC);
-} */
-
-/* void inicializerNYCFormat(char const * argv[],stationADT station){
     errno = 0;
-    FILE * stationsNYC = fopen( argv[2], "rt");
-    if(errno != 0 || stationsNYC==NULL){
-        perror("Ocurrio un error mientrar se abria el archivo de las estaciones de Nueva York\n");
+    FILE * stationsFile = fopen( argv[2], "rt");
+    if(errno != 0 || stationsFile==NULL){
+        perror("Ocurrio un error mientrar se abria el archivo de las estaciones\n");
         exit (EXIT_FAILURE);
     }
     char * s = NULL;
-    size_t longitud = 0;
     // Leer líneas desde el archivo
-    errno=0;
-    if(getLine(&s, &longitud, stationsNYC)==-1){
-        perror("Ocurrio un error leyendo la primer linea del archivo de estaciones de Nueva York\n");
-        exit (EXIT_FAILURE);
-    }
-    while (!feof(stationsNYC)){
-        getLine(&s, &longitud, stationsNYC);
-        char * name;
+    getLine(s, stationsFile);
+    while (!feof(stationsFile)){
+        getLine(s, stationsFile);
         int id;
-        char * token=strtok(s,";");
-        for (int q = 0; q < 4; q++) {
+        char name[MAXNAMELENGTH]={0};
+        char * token=strtok(s,SEMICOLON);
+        for (int q = 0; q < MAX_COLS_ELEMS_STATIONS; q++) {
             if (token != NULL) {
                 switch (q) {
-                    case 0:
-                        // leo el name
-                        name=token;
-                        break;
-                    case 3:
+                    case idStation:
                         // leo el id
                         id = atoi(token);
-                        addStation(station,name,id);
+                        break;
+                    case stationName:
+                        // leo el name
+                        strcpy(name,token);
                         break;
                     default:
                         break;
                 }
             }
-            token = strtok(NULL, ";");  // Mueve la llamada a strtok fuera del switch
+            token = strtok(NULL, SEMICOLON);  // Mueve la llamada a strtok fuera del switch
         }
+        addStation(stations,name,id);
     }
-    fclose(stationsNYC);
-    inicializerBikesNYCFormat(argv,station);
-    orderByCount(station);
-    freeTree(tree);
-} */
+    
+    fclose(stationsFile);
+    readCSVFileBikes(argv,stations);
+    /* freeTree(tree); */
+}

@@ -8,7 +8,7 @@
 
 enum DAYS           
 {     
-    monday,       
+    monday=0,       
     tuesday,
     wednesday,     
     thursday,
