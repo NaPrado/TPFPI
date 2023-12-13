@@ -7,17 +7,19 @@
 #define DAYS_IN_WEEK 7
 #define MONTHS_IN_YEAR 12
 
-#define EMPTY_IDENTIFIER "Empty"
-
 #define INDICATOR_HAS_NO_UPPER_LIMIT -1
-
+#define EMPTY_IDENTIFIER "Empty"
+#define INVALIDATE_INTERVAL -2
 
 typedef struct stationsCDT * stationsADT; 
 
 /*
-Se crea el ADT en donde se guardan los datos y se allocan todos los recursos que necesita.
+Se crea el ADT en donde se guardan los datos y se allocan todos los recursos que necesita. Recibe un intervalo cerrado definido por los dos primeros
+parametros para el funcionamiento de algunas funciones. De ser un intervalo invalido el flag valdra 0, caso contrario, 1. Para indicar que no se quiere
+una cota superior usar INDICATOR_HAS_NO_UPPER_LIMIT. Si se quiere asegurar por alguna razon que el intervalo es invalido se puede usar la constate
+INVALIDATE_INTERVAL en cualquiera de los dos parametros. El indicador validityFlag esta para que el usuario pueda saber si el intervalo enviado es valido.
 */
-stationsADT newStationsGroup(int floorYear, int ceilingYear);
+stationsADT newStationsGroup(int floorYear, int ceilingYear, int * validityFlag);
 /*
 Ordena segun un criterio util a la query 1 los recursos guardados en el ADT. Recibe al ADT que se quiera ordenar.
 */
@@ -132,6 +134,9 @@ Retorna un vector de dim DAYS_IN_WEEK con la cantidad de viajes finalizados por 
 siendo v[0]= a la cantidad de los lunes, v[1]= a la de los martes, etc..
 */
 size_t * getEndedTrips(stationsADT stations);
+/*
+Para el correcto funcionamiento de las siguientes dos funciones es necesario que el intervalo cargado en newStationsGroup sea valido. Fallaran de no serlo.
+*/
 /*
 Devuelve un string con el nombre de la estacion mas popular para aquella en la que el iterador alfabetico esta posicionado. Es responsabilidad del usuario
 que el iterador este inicializado y avanzar por el mismo. Ademas recibe por parametro un puntero a la cantidad de alquileres que hayan terminado en la

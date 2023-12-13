@@ -69,6 +69,7 @@ struct stationsCDT
     bstADT tree;
     int floorYear;
     int ceilingYear; //de ser igual a INDICATOR_HAS_NO_UPPER_LIMIT significa q no hay limite superior
+    int validForQ4AndQ5;
 };
 
 #define IS_WITHIN_INTERVAL(x,y,z) ((z) == INDICATOR_HAS_NO_UPPER_LIMIT)? ((x)>=(y)):(((x)>=(y)) && (x)<=(z))
@@ -94,12 +95,22 @@ static char* copyString(const char * origin) {
     return toReturn;
 }
 
+static int isValidInterval(int floor, int ceil){
+    return ( floor >= 0 && (ceil == INDICATOR_HAS_NO_UPPER_LIMIT || ceil >= 0) && (ceil == INDICATOR_HAS_NO_UPPER_LIMIT)?1:floor <= ceil);
+}
 
-stationsADT newStationsGroup(int floorYear, int ceilingYear){
+stationsADT newStationsGroup(int floorYear, int ceilingYear, int * validityFlag){
     stationsADT new = calloc(1,sizeof(struct stationsCDT));
     new->tree=newtree();
-    new->ceilingYear = ceilingYear;
-    new->floorYear = floorYear;
+    if(isValidInterval(floorYear,ceilingYear)){
+        new->ceilingYear = ceilingYear;
+        new->floorYear = floorYear;
+        *validityFlag = 1;
+    }
+    else{
+        *validityFlag = 0;
+    }
+    new->validForQ4AndQ5 = *validityFlag;
     return new;
 }
 
@@ -203,7 +214,7 @@ void addRental(struct tm startDate,size_t startId,struct tm endDate, size_t endI
     }
 
     if (startId == endId){
-        if(isValidForQ5(startDate,endDate,stations)){
+        if(stations->validForQ4AndQ5 && isValidForQ5(startDate,endDate,stations)){
             addToTopThree(startDate.tm_mon, stations, startStation, startId);
         }
         return;
@@ -217,7 +228,7 @@ void addRental(struct tm startDate,size_t startId,struct tm endDate, size_t endI
             free(startStation->oldestRental);
             startStation->oldestRental=newRental;
         }
-        if(isWithinYearInterval(startDate.tm_year,endDate.tm_year, stations)){
+        if(stations->validForQ4AndQ5 && isWithinYearInterval(startDate.tm_year,endDate.tm_year, stations)){
             addToMostPopular(startStation, endId, endStation->stationName);
         }
     }
@@ -227,7 +238,7 @@ static void freeRentals(pStation stations){
     if (stations==NULL||stations->oldestRental==NULL){
         return;
     }
-        free(stations->oldestRental);
+    free(stations->oldestRental);
 }
 
 static void freeStations(pStation stationList){
@@ -236,6 +247,9 @@ static void freeStations(pStation stationList){
     }
     freeRentals(stationList);
     freeStations(stationList->tailAlpha);
+    if(stationList->mostPopularEndStations != NULL){
+        free(stationList->mostPopularEndStations);
+    }
     free(stationList->stationName);
     free(stationList);
     return;
@@ -244,9 +258,11 @@ static void freeStations(pStation stationList){
 void freeAssets(stationsADT stations){
     freeTree(stations->tree);
     freeStations(stations->firstAlpha);
+    for(int i = 0; i<MONTHS_IN_YEAR; i++){
+        free(stations->topThreeInMonth[i].topOfMonth);
+    }
     free(stations);
 }
-
 
 //NO ENTIENDO ESTA FUNCION, PORQUE NO UN FIRSTCOUNT
 // Función para obtener el puntero al nodo con mayor cantidad de viajes
@@ -337,10 +353,6 @@ struct tm getOldestRentalStartDateAlpha(stationsADT stations){
     return stations->iterAlpha->oldestRental->dateStart;   
 }
 
-
-
-
-
 void toBeginCount(stationsADT stations){
     stations->iterCount=stations->firstCount;
     return;
@@ -359,7 +371,7 @@ int hasNextCount(stationsADT stations){
 void nextCount(stationsADT stations) {
   if ( !hasNextCount(stations)) {
     fprintf(stderr, "Uso invalido de iterador\n");
-    exit(1);
+    exit(EXIT_FAILURE);
   }
   stations->iterCount=stations->iterCount->tailCount;
   return;
@@ -370,7 +382,7 @@ size_t getAmountRentalsByMembersCount(stationsADT stations){
     if (stations->iterCount==NULL)
     {
         fprintf(stderr, "No se inicio el iterador\n");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
     return stations->firstCount->amountRentalsByMembers;
 }
@@ -379,7 +391,7 @@ size_t getAmountRentalsByCasualsCount(stationsADT stations){
     if (stations->iterCount==NULL)
     {
         fprintf(stderr, "No se inicio el iterador\n");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
     return stations->firstCount->amountRentalsByCasuals;
 }
@@ -388,7 +400,7 @@ size_t getTotalAmountRentalsCount(stationsADT stations){
     if (stations->iterCount==NULL)
     {
         fprintf(stderr, "No se inicio el iterador\n");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
     return stations->firstCount->totalAmountRentals;
 }
@@ -397,12 +409,10 @@ char * getStationNameCount(stationsADT stations){
     if (stations->iterCount==NULL)
     {
         fprintf(stderr, "No se inicio el iterador\n");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
     return stations->iterCount->stationName;
 }
-
-
 
 size_t * getStartedTrips(stationsADT stations){
     return stations->startedTrips;
@@ -431,6 +441,10 @@ void getTopThreeCircularRentalStationsByMonth(stationsADT stations, int month, c
         printf("Error de pasaje de mes. El mes es invalido\n");
         exit(EXIT_FAILURE);
     }
+    if(stations->validForQ4AndQ5){
+        printf("No se puede ejucatar esta funcion debido a invalidez de intervalo de años\n");
+        exit(EXIT_FAILURE);
+    }
     qsort(stations->topThreeInMonth[month].topOfMonth, stations->topThreeInMonth[month].sizeOfTopOfMonth,sizeof(pNameIdAndCounter),compareNameAndCount);
     int i;
     for(i = 0; i<3 && i<stations->topThreeInMonth[month].sizeOfTopOfMonth; i++){
@@ -452,6 +466,10 @@ static char * getMostPopularFromArray(pStation station, size_t * amountOfTrips){
 char * getMostPopularFromStationInAlphaOrder(stationsADT stations, size_t * amountOfTrips){
     if(stations->iterAlpha == NULL){
         printf("No se a inicializado el iterador\n");
+        exit(EXIT_FAILURE);
+    }
+    if(stations->validForQ4AndQ5){
+        printf("No se puede ejucatar esta funcion debido a invalidez de intervalo de años\n");
         exit(EXIT_FAILURE);
     }
     char * toReturn = getMostPopularFromArray(stations->iterAlpha,amountOfTrips);
