@@ -9,7 +9,7 @@ int main(int argc, char const *argv[])
         printf("cantidad de argumentos incorrectos\n");
         exit(EXIT_FAILURE);
     }
-    stationADT new= newStation();
+    stationsADT new= newStationsGroup();
     inicializerNYCFormat(argv,new);
     query1(new);
     query2(new);

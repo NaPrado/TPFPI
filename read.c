@@ -44,7 +44,7 @@ static __ssize_t getLine(char **lineptr, size_t *n, FILE *stream) {
     return pos; // Devolver el número de caracteres leídos
 }
 
-static void inicializerBikesMONFormat(char const *argv[],bst tree,stationADT station){
+static void readCSVFileBikes(char const *argv[],stationsADT stations){
     errno=0;
     FILE * bikesMON = fopen( argv[1], "rt");
     if(errno != 0 && bikesMON==NULL){
@@ -84,7 +84,7 @@ static void inicializerBikesMONFormat(char const *argv[],bst tree,stationADT sta
         endDate.tm_mon=startDate.tm_mon-1;
 
         if (result == 15){ // La cadena se analizó correctamente, los valores están en las variables correspondientes.
-            addRental(tree,startDate,idStart,endDate,idEnd,isMember,station);
+            addRental(startDate,idStart,endDate,idEnd,isMember,stations);
         }
         else if (result!=0){// Hubo un problema al analizar la cadena
             printf("Error al analizar la cadena\n");
@@ -94,8 +94,7 @@ static void inicializerBikesMONFormat(char const *argv[],bst tree,stationADT sta
     fclose(bikesMON);
 }
 
-void inicializerMONFormat(char const * argv[],stationADT station){
-    bst tree=newtree();
+void readCSVFileStation(char const * argv[],stationsADT stations){
     errno = 0;
     FILE * stationsMON = fopen( argv[2], "rt");
     if(errno != 0 || stationsMON==NULL){
@@ -123,7 +122,7 @@ void inicializerMONFormat(char const * argv[],stationADT station){
                         break;
                     case 1:
                         // leo el name
-                        addStation(station,token,tree,id);
+                        addStation(stations,token,id);
                         break;
                     default:
                         break;
@@ -134,12 +133,12 @@ void inicializerMONFormat(char const * argv[],stationADT station){
     }
     
     fclose(stationsMON);
-    inicializerBikesMONFormat(argv,tree,station);
-    orderByCount(station);
-    freeTree(tree);
+    readCSVFileBikes(argv,stations);
+    orderByCount(stations);//esto esta tecnicamente mal
+    /* freeTree(tree); */
 }
 
-static void inicializerBikesNYCFormat(char const *argv[],bst tree,stationADT station){
+/* static void inicializerBikesNYCFormat(char const *argv[],stationADT station){
     errno=0;
     FILE * bikesNYC = fopen( argv[1], "rt");
     if(errno != 0 && bikesNYC==NULL){
@@ -182,7 +181,7 @@ static void inicializerBikesNYCFormat(char const *argv[],bst tree,stationADT sta
 
         if (result == 15) {
             // La cadena se analizó correctamente, los valores están en las variables correspondientes.
-            addRental(tree,startDate,idStart,endDate,idEnd,isMember,station);
+            addRental(startDate,idStart,endDate,idEnd,isMember,station);
         } 
         else if (result!=0){// Hubo un problema al analizar la cadena
             printf("Error al analizar la cadena\n");
@@ -190,10 +189,9 @@ static void inicializerBikesNYCFormat(char const *argv[],bst tree,stationADT sta
         free(s);
     }
     fclose(bikesNYC);
-}
+} */
 
-void inicializerNYCFormat(char const * argv[],stationADT station){
-    bst tree=newtree();
+/* void inicializerNYCFormat(char const * argv[],stationADT station){
     errno = 0;
     FILE * stationsNYC = fopen( argv[2], "rt");
     if(errno != 0 || stationsNYC==NULL){
@@ -223,7 +221,7 @@ void inicializerNYCFormat(char const * argv[],stationADT station){
                     case 3:
                         // leo el id
                         id = atoi(token);
-                        addStation(station,name,tree,id);
+                        addStation(station,name,id);
                         break;
                     default:
                         break;
@@ -233,7 +231,7 @@ void inicializerNYCFormat(char const * argv[],stationADT station){
         }
     }
     fclose(stationsNYC);
-    inicializerBikesNYCFormat(argv,tree,station);
+    inicializerBikesNYCFormat(argv,station);
     orderByCount(station);
     freeTree(tree);
-}
+} */

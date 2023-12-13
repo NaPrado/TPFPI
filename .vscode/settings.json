@@ -8,6 +8,7 @@
         "strings.h": "c",
         "math.h": "c",
         "stdio.h": "c",
-        "time.h": "c"
+        "time.h": "c",
+        "stdlib.h": "c"
     }
 }
