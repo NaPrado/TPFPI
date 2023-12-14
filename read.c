@@ -51,10 +51,8 @@ char* copyString(const char * origin) {
 }
 
 
-static struct tm saveDate(const char * date){
-    char copydate[50]={0};
-    strcpy(copydate,date);
-    char * token = strtok(copydate,DATE_DELIM);
+static struct tm saveDate(char * date){
+    char * token = strtok(date,DATE_DELIM);
     struct tm moment;
     for (int i = 0; token!=NULL; i++){
             switch (i){
@@ -100,18 +98,21 @@ static void readCSVFileBikes(char const *argv[],stationsADT stations){
         fgets(s,MAXCHARSPERLINE, bikesFile);
         struct tm startDate;
         struct tm endDate;
+        char * sDate,* eDate;
         int idStart, idEnd, isMember;
         char * token=strtok(s,SEMICOLON);
+        if (token!=NULL)
+        {
             for (int q = 0; token!=NULL; q++){            
                     switch (q) {
                         case dateStart:
-                            startDate=saveDate(token);
+                            sDate=token;
                             break;
                         case startedId:
                             idStart=atoi(token);
                             break;
                         case dateEnd:
-                            endDate=saveDate(token);
+                            eDate=token;
                             break;
                         case endedId:
                             idEnd=atoi(token);
@@ -131,8 +132,10 @@ static void readCSVFileBikes(char const *argv[],stationsADT stations){
                 }
                 token = strtok(NULL, SEMICOLON);
             }
-            printf("%d,%d,%d,%d,%d\n",(startDate.tm_sec),idStart,(endDate.tm_year),idEnd,isMember);
-            //addRental(startDate,idStart,endDate,idEnd,isMember,stations);
+            startDate=saveDate(sDate);
+            endDate=saveDate(eDate);
+            addRental(startDate,idStart,endDate,idEnd,isMember,stations);  
+        }          
     }
     fclose(bikesFile);
 }
@@ -153,7 +156,6 @@ void readCSVFileStation(char const * argv[],stationsADT stations){
     char s[MAXCHARSPERLINE];
     // Leer líneas desde el archivo
     fgets(s,MAXCHARSPERLINE,stationsFile);
-    int lastId=-1;
     while (!feof(stationsFile)){
         fgets(s,MAXCHARSPERLINE,stationsFile);
         int id;
@@ -174,10 +176,7 @@ void readCSVFileStation(char const * argv[],stationsADT stations){
                 }
             token = strtok(NULL, SEMICOLON);  // Mueve la llamada a strtok fuera del switch
         }
-        if (lastId!=id){
-            addStation(stations,name,id);
-        }
-        lastId=id;
+        addStation(stations,name,id);
     }
     fclose(stationsFile);
     readCSVFileBikes(argv,stations);
