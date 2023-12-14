@@ -16,13 +16,15 @@
     dateEnd, \
     endedId, \
     rideableType, \
-    member
+    member, \
+    lastElemBikes
 
 #define NYCSTATIONS_FORMAT_ENUM \
     stationName, \
     latitude, \
     longitude, \
-    idStation
+    idStation, \
+    lastElmStations
 
 enum NYCBIKES {
     NYCBIKES_FORMAT_ENUM
@@ -33,20 +35,21 @@ enum NYCSTATIONS {
 };
 
 
-
 #elif FORMATMON
 #define MONBIKES_FORMAT_ENUM \
     dateStart, \
     startedId, \
     dateEnd, \
     endedId, \
-    member
+    member, \
+    lastElemBikes
 
 #define MONSTATIONS_FORMAT_ENUM \
     idStation, \
     stationName, \
     latitude, \
-    longitude
+    longitude, \
+    lastElmStations
 
 enum MONBIKES {
     MONBIKES_FORMAT_ENUM

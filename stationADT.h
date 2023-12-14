@@ -33,10 +33,6 @@ void addRental(struct tm startDate,size_t startId,struct tm endDate, size_t endI
 Libera todos los recursos empleados por el ADT. Recibe al ADT que se quiera liberar.
 */
 void freeAssets(stationsADT stations);
-/*
-Ordena segun un criterio util a la query 1 los recursos guardados en el ADT. Recibe al ADT que se quiera ordenar.
-*/
-void orderByCount(stationsADT stations);
 
 /* 
 Se debe llamar a esta funcion para poder usar las otras funciones de Q1
@@ -69,7 +65,7 @@ para avanzar usar nextQ1 y no olvidar hasNextQ1 para chequear que exista
 size_t getTotalQ1(stationsADT stations);
 /*
 Obtiene el nombre de la estacion iterada, 
-para avanzar usar nextCount y no olvidar hasNextCount para chequear que exista
+para avanzar usar nextQ1 y no olvidar hasNextQ1 para chequear que exista
 */
 char * getStationNameQ1(stationsADT stations);
 /* 
@@ -133,14 +129,27 @@ avanza el iterador Q4
 */
 void nextQ4(stationsADT stations);
 /*
+Obtiene el nombre de la estacion iterada, 
+para avanzar usar nextQ4 y no olvidar hasNextQ4 para chequear que exista
+*/
+char * getStationNameQ4(stationsADT stations);
+/*
 Devuelve un string con el nombre de la estacion mas popular para aquella en la que el iterador alfabetico esta posicionado. Es responsabilidad del usuario
 que el iterador este inicializado y avanzar por el mismo. Ademas recibe por parametro un puntero a la cantidad de alquileres que hayan terminado en la
 estacion mas popular
 */
-char * getMostPopularFromStationInAlphaOrder(stationsADT stations, size_t * amountOfTrips);
+char * getMostPopularFromStationQ4(stationsADT stations, size_t * amountOfTrips);
+
+
+
+
+
+
 /*
 La funcion recibe el mes en el que se le quiere averiguar cual es el top tres estaciones por cantidad de viajes circulares. Recibe como parametro 
 un vector de dimension tres. 
 */
+/*
 void getTopThreeCircularRentalStationsByMonth(stationsADT stations, int month, char ** topThree);
-#endif
+*/
+#endif 

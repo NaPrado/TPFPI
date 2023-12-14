@@ -272,7 +272,7 @@ void freeAssets(stationsADT stations){
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Función para obtener el puntero al nodo con mayor cantidad de viajes
-static pStation getNodeWithMaxRentalsQ1(pStation stations) {
+static pStation getNodeWithMaxRentals(pStation stations) {
     pStation maxNode = NULL;
     while (stations != NULL) {
         if (maxNode == NULL || stations->totalAmountRentals > maxNode->totalAmountRentals) {
@@ -290,11 +290,11 @@ static pStation linkQ1(pStation listAlpha,pStation listCount){
         return listAlpha;
     }
     if(c<=0)
-        listCount->tailCount = link(listAlpha,listCount->tailCount);
+        listCount->tailCount = linkQ1(listAlpha,listCount->tailCount);
     return listCount;
 }
 
-static void orderByCountQ1(stationsADT stations){
+static void orderByCount(stationsADT stations){
     pStation aux = stations->firstAlpha;
     while (aux != NULL){
         stations->firstCount = linkQ1(aux,stations->firstCount);
@@ -305,7 +305,7 @@ static void orderByCountQ1(stationsADT stations){
 }
 
 void toBeginQ1(stationsADT stations){
-    orderByCountQ1(stations);
+    orderByCount(stations);
     stations->iterQ1=getNodeWithMaxRentals(stations->firstAlpha);
     return;
 }
@@ -315,7 +315,7 @@ int hasNextQ1(stationsADT stations){
 }
 
 void nextQ1(stationsADT stations) {
-  if ( !hasNextCount(stations)) {
+  if ( !hasNextQ1(stations)) {
     fprintf(stderr, "Uso invalido de iterador\n");
     exit(EXIT_FAILURE);
   }
@@ -434,12 +434,21 @@ int hasNextQ4(stationsADT stations){
 }
 
 void nextQ4(stationsADT stations){
-  if ( !hasNextCount(stations)) {
+  if ( !hasNextQ4(stations)) {
     fprintf(stderr, "Uso invalido de iterador\n");
     exit(EXIT_FAILURE);
   }
   stations->iterQ4=stations->iterQ4->tailAlpha;
   return;
+}
+
+char * getStationNameQ4(stationsADT stations){
+    if (stations->iterQ4==NULL)
+    {
+        fprintf(stderr, "No se inicio el iterador\n");
+        exit(EXIT_FAILURE);
+    }
+    return stations->iterQ4->stationName;
 }
 
 static int compareNameAndCount(const void * elem1,const void * elem2){

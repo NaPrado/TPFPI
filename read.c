@@ -12,7 +12,7 @@
 #define CASUAL 0 
 #define YEAR_ALIGMENT 1900 
 #define MONTH_ALIGMENT 1 
-#define MAXCHARSPERLINE 100
+#define MAXCHARSPERLINE 200
 #define CHARSBLOCK 10
 #define MAXNAMELENGTH 20
 #define DATE_ELEMS 6
@@ -27,13 +27,36 @@ enum dateForm{
     hour,
     mins,
     secs,
+    lastElemDates,
 };
 
+char* copyString(const char * origin) {
+    // Obtener la longitud de la cadena de origen
+    size_t length = strlen(origin);
 
-static struct tm saveDate(char * date){
-    char * token = strtok(date,DATE_DELIM);
+    // Asignar memoria dinámica para la cadena de destino
+    char *toReturn = (char*)malloc((length + 1) * sizeof(char));
+
+    // Verificar si la asignación de memoria fue exitosa
+    if (toReturn == NULL) {
+        perror("Error al asignar memoria");
+        exit(EXIT_FAILURE);
+    }
+
+    // Copiar la cadena de origen a la zona de memoria dinámica
+    strcpy(toReturn, origin);
+
+    // Devolver la dirección de la zona de memoria asignada
+    return toReturn;
+}
+
+
+static struct tm saveDate(const char * date){
+    char copydate[50]={0};
+    strcpy(copydate,date);
+    char * token = strtok(copydate,DATE_DELIM);
     struct tm moment;
-    for (int i = 0; token!=NULL ; i++){
+    for (int i = 0; token!=NULL; i++){
             switch (i){
             case year:
                 moment.tm_year=atoi(token)-YEAR_ALIGMENT;
@@ -74,41 +97,42 @@ static void readCSVFileBikes(char const *argv[],stationsADT stations){
     //libera la primer linea
     fgets(s,MAXCHARSPERLINE,bikesFile);
     while (!feof(bikesFile)){
-    fgets(s,MAXCHARSPERLINE, bikesFile);
-    struct tm startDate;
-    struct tm endDate;
-    int idStart, idEnd, isMember;
-    char * token=strtok(s,SEMICOLON);
-        for (int q = 0; token!=NULL ; q++) {
-                switch (q) {
-                    case dateStart:
-                        startDate=saveDate(token);
-                        break;
-                    case startedId:
-                        idStart=atoi(token);
-                        break;
-                    case dateEnd:
-                        endDate=saveDate(token);
-                        break;
-                    case endedId:
-                        idEnd=atoi(token);
-                        break;
-                    case member:
-                        if (FORMATMON)
-                        {
-                            isMember=atoi(token);
-                        }
-                        else if (FORMATNYC)
-                        {
-                            isMember=(*token=='m');
-                        }
-                        break;
-                    default:
-                        break;
+        fgets(s,MAXCHARSPERLINE, bikesFile);
+        struct tm startDate;
+        struct tm endDate;
+        int idStart, idEnd, isMember;
+        char * token=strtok(s,SEMICOLON);
+            for (int q = 0; token!=NULL; q++){            
+                    switch (q) {
+                        case dateStart:
+                            startDate=saveDate(token);
+                            break;
+                        case startedId:
+                            idStart=atoi(token);
+                            break;
+                        case dateEnd:
+                            endDate=saveDate(token);
+                            break;
+                        case endedId:
+                            idEnd=atoi(token);
+                            break;
+                        case member:
+                            if (FORMATMON)
+                            {
+                                isMember=atoi(token);
+                            }
+                            else if (FORMATNYC)
+                            {
+                                isMember=(*token=='m');
+                            }
+                            break;
+                        default:
+                            break;
                 }
-            token = strtok(NULL, SEMICOLON);
-        }
-        addRental(startDate,idStart,endDate,idEnd,isMember,stations);
+                token = strtok(NULL, SEMICOLON);
+            }
+            printf("%d,%d,%d,%d,%d\n",(startDate.tm_sec),idStart,(endDate.tm_year),idEnd,isMember);
+            //addRental(startDate,idStart,endDate,idEnd,isMember,stations);
     }
     fclose(bikesFile);
 }
@@ -129,6 +153,7 @@ void readCSVFileStation(char const * argv[],stationsADT stations){
     char s[MAXCHARSPERLINE];
     // Leer líneas desde el archivo
     fgets(s,MAXCHARSPERLINE,stationsFile);
+    int lastId=-1;
     while (!feof(stationsFile)){
         fgets(s,MAXCHARSPERLINE,stationsFile);
         int id;
@@ -149,7 +174,10 @@ void readCSVFileStation(char const * argv[],stationsADT stations){
                 }
             token = strtok(NULL, SEMICOLON);  // Mueve la llamada a strtok fuera del switch
         }
-        addStation(stations,name,id);
+        if (lastId!=id){
+            addStation(stations,name,id);
+        }
+        lastId=id;
     }
     fclose(stationsFile);
     readCSVFileBikes(argv,stations);
