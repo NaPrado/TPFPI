@@ -50,7 +50,7 @@ char* copyString(const char * origin) {
     return toReturn;
 }
 
-
+//assigna la fecha en formato yyyy-MM-dd HH:mm:ss a un struct tm
 static struct tm saveDate(char * date){
     char * token = strtok(date,DATE_DELIM);
     struct tm moment;
@@ -94,8 +94,7 @@ static void readCSVFileBikes(char const *argv[],stationsADT stations){
     char s[MAXCHARSPERLINE];
     //libera la primer linea
     fgets(s,MAXCHARSPERLINE,bikesFile);
-    while (!feof(bikesFile)){
-        fgets(s,MAXCHARSPERLINE, bikesFile);
+    while (fgets(s,MAXCHARSPERLINE, bikesFile)){
         struct tm startDate;
         struct tm endDate;
         char * sDate,* eDate;
@@ -141,7 +140,7 @@ static void readCSVFileBikes(char const *argv[],stationsADT stations){
 }
 
 void readCSVFileStation(char const * argv[],stationsADT stations){
-    if (FORMATMON && FORMATNYC)
+    if ((FORMATMON == 1 && FORMATNYC == 1)||(FORMATMON == 0 && FORMATNYC == 0))//si no se selecciona ninguna flag o si se selecconan ambas
     {
         perror("Ocurrio un error en compilacion, se debe aclarar en el makefile el formato de que ciudad a usar\n");
         exit (EXIT_FAILURE);
@@ -156,8 +155,7 @@ void readCSVFileStation(char const * argv[],stationsADT stations){
     char s[MAXCHARSPERLINE];
     // Leer líneas desde el archivo
     fgets(s,MAXCHARSPERLINE,stationsFile);
-    while (!feof(stationsFile)){
-        fgets(s,MAXCHARSPERLINE,stationsFile);
+    while (fgets(s,MAXCHARSPERLINE,stationsFile)){
         int id;
         char * name;
         char * token=strtok(s,SEMICOLON);
