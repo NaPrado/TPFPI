@@ -77,7 +77,7 @@ struct stationsCDT
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define IS_WITHIN_INTERVAL(x,y,z) ((z) == INDICATOR_HAS_NO_UPPER_LIMIT)? ((x)>=(y)):(((x)>=(y)) && (x)<=(z))
+#define IS_WITHIN_INTERVAL(x,y,z) (((z) == INDICATOR_HAS_NO_UPPER_LIMIT) && ((y)==INDICATOR_HAS_NO_LOWER_LIMIT))?1:((z) == INDICATOR_HAS_NO_UPPER_LIMIT)? ((x)>=(y)):(((x)>=(y)) && (x)<=(z))
 
 static char* copyString(const char * origin) {
     // Obtener la longitud de la cadena de origen
