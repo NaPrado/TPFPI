@@ -363,7 +363,7 @@ void toBeginCount(stationsADT stations){
 }
 
 int hasNextCount(stationsADT stations){
-    return (stations->iterCount->tailCount!=NULL);
+    return (stations->iterCount!=NULL);
 }
 
 void nextCount(stationsADT stations) {
@@ -455,7 +455,7 @@ void toBeginAlpha(stationsADT stations){
 }
 
 int hasNextAlpha(stationsADT stations){
-    return (stations->iterAlpha->tailAlpha!=NULL);
+    return (stations->iterAlpha!=NULL);
 }
 
 void nextAlpha(stationsADT stations){
