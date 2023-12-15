@@ -48,30 +48,28 @@ static int countDigit(int num) {
 
 
 static void writeQ1Rec(stationsADT stations, htmlTable tablaQ1, FILE * csvQ1){
-    size_t members=getMembersCount(stations);
-    size_t casuals=getCasualsCount(stations);
-    size_t total=getTotalCount(stations);
+    while (hasNextCount(stations)){
+        size_t members=getMembersCount(stations);
+        size_t casuals=getCasualsCount(stations);
+        size_t total=getTotalCount(stations);
+        
+        char * membersStr=calloc(1,sizeof(char)*(countDigit(members)+1));
+        char *casualsStr=calloc(1,sizeof(char)*(countDigit(casuals)+1));
+        char *totalStr=calloc(1,sizeof(char)*(countDigit(total)+1));
 
-    char * membersStr=calloc(1,sizeof(char)*(countDigit(members)+1));
-    char *casualsStr=calloc(1,sizeof(char)*(countDigit(casuals)+1));
-    char *totalStr=calloc(1,sizeof(char)*(countDigit(total)+1));
+        sprintf(membersStr,"%zu",members);
+        sprintf(casualsStr,"%zu",casuals);
+        sprintf(totalStr,"%zu",total);
 
-    sprintf(membersStr,"%zu",members);
-    sprintf(casualsStr,"%zu",casuals);
-    sprintf(totalStr,"%zu",total);
+        char * stationName=getStationNameCount(stations);
 
-    char * stationName=getStationNameCount(stations);
-
-    addHTMLRow(tablaQ1,stationName,membersStr,casualsStr,totalStr);
-    writeRowQ1(csvQ1,stationName,membersStr,casualsStr,totalStr);
-    free(membersStr);
-    free(casualsStr);
-    free(totalStr);
-    if (!hasNextCount(stations)){
-        return;
-    }
-    nextCount(stations);
-    writeQ1Rec(stations,tablaQ1,csvQ1);
+        addHTMLRow(tablaQ1,stationName,membersStr,casualsStr,totalStr);
+        writeRowQ1(csvQ1,stationName,membersStr,casualsStr,totalStr);
+        free(membersStr);
+        free(casualsStr);
+        free(totalStr);
+        nextCount(stations);
+        }
     return;
 }
 

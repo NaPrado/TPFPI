@@ -367,8 +367,8 @@ int hasNextCount(stationsADT stations){
 }
 
 void nextCount(stationsADT stations) {
-  if ( !hasNextCount(stations)) {
-    fprintf(stderr, "Uso invalido de iterador\n");
+  if (!hasNextCount(stations)) {
+    fprintf(stderr, "Uso invalido de iteradorsdasdasds\n");
     exit(EXIT_FAILURE);
   }
   stations->iterCount=stations->iterCount->tailCount;
