@@ -5,7 +5,7 @@
 #include <time.h>
 
 #define DAYS_IN_WEEK 7
-#define MONTHS_IN_YEAR 12
+// #define MONTHS_IN_YEAR 12
 
 #define INDICATOR_HAS_NO_UPPER_LIMIT -1
 #define INDICATOR_HAS_NO_LOWER_LIMIT -1
