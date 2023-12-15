@@ -99,35 +99,60 @@ static char* copyString(const char * origin) {
     return toReturn;
 }
 
+
 static int isValidInterval(int floor, int ceil){
-    return ( floor >= 0 && (ceil == INDICATOR_HAS_NO_UPPER_LIMIT || ceil >= 0) && (ceil == INDICATOR_HAS_NO_UPPER_LIMIT)?1:floor <= ceil);
+    return (floor >= 0 && ceil >= 0 && floor <= ceil);
 }
 
-stationsADT newStationsGroup(int argc, char const *argv[]){
-    stationsADT new = calloc(1,sizeof(struct stationsCDT));
-    /* if (argc==NOLIMITS)
-    {
-        floorYear=INDICATOR_HAS_NO_LOWER_LIMIT;
-        ceilingYear=INDICATOR_HAS_NO_UPPER_LIMIT;
+static int isInt(const char *string, int *num) {
+    char *ptr;
+    long value = strtol(string, &ptr, 10);
+    if (*string != '\0' && *ptr == '\0') {
+        *num = (int)value;
+        return 1; // La cadena es un número entero válido
+    } else {
+        return 0; // La cadena no es un número entero válido
     }
-    else if (argc==NOUPPERLIMIT)
-    {
-        floorYear=argv[NOUPPERLIMIT];
+}
+
+static void yearValidator(int argc, const char * argv[], int * floorYear, int * ceilYear){
+    if (argc == 3){ //no me pasan años
+        *floorYear=INDICATOR_HAS_NO_LOWER_LIMIT;
+        *ceilYear=INDICATOR_HAS_NO_UPPER_LIMIT;
+        return;
     }
-    
-    
-    stationsADT new = calloc(1,sizeof(struct stationsCDT));
-    new->tree=newtree();
-    int validityFlag;
-    if(isValidInterval(floorYear,ceilingYear)){
-        new->ceilingYear = ceilingYear;
-        new->floorYear = floorYear;
-        validityFlag = 1;
+    else if(argc == 4){ //se recibe un año entonces asumo q es el piso
+        if(isInt(argv[4],floorYear) && *floorYear>=0){
+            ceilYear = INDICATOR_HAS_NO_UPPER_LIMIT;
+            return;
+        }
+        else{
+            printf("Error en pasaje de argumentos para intervalo de años\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+    else if(argc == 5){ //se reciben ambos años
+        if(isInt(argv[4],floorYear)&&isInt(argv[5],ceilYear)&&isValidInterval(*floorYear,*ceilYear)){
+            return;
+        }
+        else{
+            printf("Error en pasaje de argumentos para intervalo de años\n");
+            exit(EXIT_FAILURE);
+        }
     }
     else{
-        validityFlag = 0;
+        printf("Error en pasaje de argumentos\n");
+        exit(EXIT_FAILURE);
     }
-    new->validPeriod = validityFlag; */
+}
+
+stationsADT newStationsGroup(int argc, const char * argv[]){
+    int ceilingYear,floorYear;
+    yearValidator(argc,argv,&floorYear,&ceilingYear);
+    stationsADT new = calloc(1,sizeof(struct stationsCDT));
+    new->tree=newtree();
+    new->ceilingYear = ceilingYear;
+    new->floorYear = floorYear;
     return new;
 }
 
