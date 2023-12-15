@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <ctype.h>
 #include <string.h>
 #include <strings.h>
 #include "stationADT.h"
@@ -12,6 +13,7 @@
 #define NOLIMITS 3
 #define NOUPPERLIMIT 4
 #define ALLLIMITS 5
+#define YEARSDIGIT 15 
 
 enum DAYS           
 {     
@@ -104,26 +106,38 @@ static int isValidInterval(int floor, int ceil){
     return (floor >= 0 && ceil >= 0 && floor <= ceil);
 }
 
+int isStrDigit(const char *string){
+    int i=0;
+    while (*(string+i))
+    {
+        if (!isdigit(*(string+i)))
+        {
+            return 0;
+        }
+        i++;
+    }
+    return 1;
+}
+
 static int isInt(const char *string, int *num) {
-    char *ptr;
-    long value = strtol(string, &ptr, 10);
-    if (*string != '\0' && *ptr == '\0') {
-        *num = (int)value;
-        return 1; // La cadena es un número entero válido
-    } else {
-        return 0; // La cadena no es un número entero válido
+    if(isStrDigit(string)){
+        *num=atoi(string);
+        return 1;
+    }
+    else{
+        return 0;
     }
 }
 
 static void yearValidator(int argc, const char * argv[], int * floorYear, int * ceilYear){
-    if (argc == 3){ //no me pasan años
+    if (argc == NOLIMITS){ //no me pasan años
         *floorYear=INDICATOR_HAS_NO_LOWER_LIMIT;
         *ceilYear=INDICATOR_HAS_NO_UPPER_LIMIT;
         return;
     }
-    else if(argc == 4){ //se recibe un año entonces asumo q es el piso
-        if(isInt(argv[4],floorYear) && *floorYear>=0){
-            ceilYear = INDICATOR_HAS_NO_UPPER_LIMIT;
+    else if(argc == NOUPPERLIMIT){ //se recibe un año entonces asumo q es el piso
+        if(isInt(argv[3],floorYear) && *floorYear>=0){
+            *ceilYear = INDICATOR_HAS_NO_UPPER_LIMIT;
             return;
         }
         else{
@@ -131,8 +145,8 @@ static void yearValidator(int argc, const char * argv[], int * floorYear, int * 
             exit(EXIT_FAILURE);
         }
     }
-    else if(argc == 5){ //se reciben ambos años
-        if(isInt(argv[4],floorYear)&&isInt(argv[5],ceilYear)&&isValidInterval(*floorYear,*ceilYear)){
+    else if(argc == ALLLIMITS){ //se reciben ambos años
+        if(isInt(argv[3],floorYear)&&isInt(argv[4],ceilYear)&&isValidInterval(*floorYear,*ceilYear)){
             return;
         }
         else{
@@ -515,8 +529,4 @@ char * getMostPopularFromStationAlpha(stationsADT stations, size_t * amountOfTri
     }
     char * toReturn = getMostPopularFromArrayAlpha(stations->iterAlpha,amountOfTrips);
     return toReturn;
-}
-
-getValidPeriod(stationsADT stations){
-    return stations->validPeriod;
 }

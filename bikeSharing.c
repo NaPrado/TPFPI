@@ -6,11 +6,15 @@
 
 int main(int argc, char const *argv[])
 {
-    printf("%d",argc);
     if(argc < 3){
-        printf("cantidad de argumentos incorrectos\n");
+        printf("Cantidad de argumentos incorrectos\n");
         exit(EXIT_FAILURE);
     }
+    if (argc > 5)
+    {
+        printf("Advetencia, la cantidad de argumentos es mayor a la solicitada\n");
+    }
+    
     stationsADT new= newStationsGroup(argc,argv);
     readCSVFileStation(argv,new);
     query1(new);

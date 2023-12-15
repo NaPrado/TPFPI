@@ -139,8 +139,6 @@ void query3(stationsADT stations){
 }
 
 void query4(stationsADT stations){
-    if (getValidPeriod(stations))
-    {
         FILE * csvQ4 = newFile("query4.csv");
         writeHeaderQ4(csvQ4);
         htmlTable tablaQ4 = newTable("query4.html",3,"bikeStation","mostPopRouteEndStation","mostPopRouteTrips");
@@ -157,7 +155,6 @@ void query4(stationsADT stations){
             free(amountOfTripsStr);
             nextAlpha(stations);
         }
-    }
     return;
 }
 
