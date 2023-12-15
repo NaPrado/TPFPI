@@ -129,42 +129,28 @@ void query3(stationsADT stations){
         sprintf(eT,"%lu",endedTrips[i]);
         writeRowQ3(csvQ3,*(weekDays+i),sT,eT);
         addHTMLRow(tablaQ3,*(weekDays+i),sT,eT);
-        /* free(sT);
-        free(eT); */
-    }
+        }
     closeHTMLTable(tablaQ3);
     fclose(csvQ3);
 }
 
 void query4(stationsADT stations){
-        FILE * csvQ4 = newFile("query4.csv");
-        writeHeaderQ4(csvQ4);
-        htmlTable tablaQ4 = newTable("query4.html",3,"bikeStation","mostPopRouteEndStation","mostPopRouteTrips");
-        toBeginAlpha(stations);
-        char * mostPopularName;
-        size_t amountOfTrips;
-        while(hasNextAlpha(stations)){
-            mostPopularName = getMostPopularFromStationAlpha(stations,&amountOfTrips);
-            char * name =getStationNameAlpha(stations);
-            char * amountOfTripsStr=NULL;
-            sscanf(amountOfTripsStr,"%lu",&amountOfTrips);
-            writeRowQ4(csvQ4,name, mostPopularName, amountOfTripsStr);
-            addHTMLRow(tablaQ4,name, mostPopularName, amountOfTripsStr);
-            free(amountOfTripsStr);
-            nextAlpha(stations);
-        }
+    FILE * csvQ4 = newFile("query4.csv");
+    writeHeaderQ4(csvQ4);
+    htmlTable tablaQ4 = newTable("query4.html",3,"bikeStation","mostPopRouteEndStation","mostPopRouteTrips");
+    toBeginAlpha(stations);
+    char * mostPopularName;
+    size_t amountOfTrips;
+    while(hasNextAlpha(stations)){
+        mostPopularName = getMostPopularFromStationAlpha(stations,&amountOfTrips);
+        char * name =getStationNameAlpha(stations);
+        char amountOfTripsStr[50];
+        sscanf(amountOfTripsStr,"%lu",&amountOfTrips);
+        writeRowQ4(csvQ4,name, mostPopularName, amountOfTripsStr);
+        addHTMLRow(tablaQ4,name, mostPopularName, amountOfTripsStr);
+        nextAlpha(stations);
+    }
+    closeHTMLTable(tablaQ4);
+    fclose(csvQ4);
     return;
 }
-
-/* void query5(stationsADT stations){
-    FILE * csvQ5 = newFile("query5.csv");
-    writeHeaderQ4(csvQ5);
-    htmlTable tablaQ5 = newTable("query5.html",4,"month","loopsTop1St","loopsTop2St","loopsTop3St");
-    char * months[MONTHS_IN_YEAR] = {"January","February","March","April","May","June","July","August","September","October","November","December"};
-    char * topThree[3];
-    for(int i = 0; i<MONTHS_IN_YEAR; i++){
-        getTopThreeCircularRentalStationsByMonth(stations, i,topThree);
-        writeRowQ5(csvQ5,months[i],topThree[FIRST],topThree[SECOND],topThree[THIRD]);
-        addHTMLRow(tablaQ5,months[i],topThree[FIRST],topThree[SECOND],topThree[THIRD]);
-    }
-} */
