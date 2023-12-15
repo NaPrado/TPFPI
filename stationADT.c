@@ -14,6 +14,7 @@
 #define NOUPPERLIMIT 4
 #define ALLLIMITS 5
 #define YEARSDIGIT 15 
+#define YEAR_ALIGMENT 1900 
 
 enum DAYS           
 {     
@@ -47,7 +48,7 @@ typedef struct station * pStation ;
 struct station 
 {
     char * stationName;
-    pNameIdAndCounter * mostPopularEndStations;
+    struct nameIdAndCounter * mostPopularEndStations;
     size_t sizeOfMostPopular;
     pRental oldestRental;
     size_t amountRentalsByMembers;
@@ -57,10 +58,6 @@ struct station
     pStation tailCount;
 };
 
-// struct topThreeCircularStations{
-//     pNameIdAndCounter * topOfMonth;
-//     size_t sizeOfTopOfMonth;
-// };
 
 struct stationsCDT
 {
@@ -236,21 +233,22 @@ static int isWithinYearInterval(int startYear, int endYear, stationsADT stations
 // }
 
 static void addToMostPopular(pStation startStation, size_t endId, char * endStationName){
+    startStation->mostPopularEndStations = realloc(startStation->mostPopularEndStations, (startStation->sizeOfMostPopular + 1) * sizeof(struct nameIdAndCounter));
     for(int i = 0; i<startStation->sizeOfMostPopular; i++){
-        if(startStation->mostPopularEndStations[i]->id == endId){
-            startStation->mostPopularEndStations[i]->counter+=1;
+        if(startStation->mostPopularEndStations[i].id == endId){
+            startStation->mostPopularEndStations[i].counter+=1;
             return;
         }
     }
-    startStation->mostPopularEndStations = realloc(startStation->mostPopularEndStations, (startStation->sizeOfMostPopular + 1) * sizeof(struct nameIdAndCounter));
+    
     if(startStation->mostPopularEndStations == NULL){
         printf("Error allocando memoria\n");
         exit(EXIT_FAILURE);
     }
-    startStation->mostPopularEndStations[startStation->sizeOfMostPopular]->counter = 1;
-    startStation->mostPopularEndStations[startStation->sizeOfMostPopular]->name = endStationName;
-    startStation->mostPopularEndStations[startStation->sizeOfMostPopular]->id = endId;
-    startStation->sizeOfMostPopular += 1;
+    startStation->mostPopularEndStations[startStation->sizeOfMostPopular].counter = 1;
+    startStation->mostPopularEndStations[startStation->sizeOfMostPopular].name = endStationName;
+    startStation->mostPopularEndStations[startStation->sizeOfMostPopular].id = endId;
+    startStation->sizeOfMostPopular++;
 }
 
 void addRental(struct tm startDate,size_t startId,struct tm endDate, size_t endId, char association, stationsADT stations){
@@ -283,7 +281,7 @@ void addRental(struct tm startDate,size_t startId,struct tm endDate, size_t endI
             free(startStation->oldestRental);
             startStation->oldestRental=newRental;
         }
-        if(isWithinYearInterval(startDate.tm_year,endDate.tm_year, stations)){
+        if(isWithinYearInterval(startDate.tm_year+YEAR_ALIGMENT,endDate.tm_year+YEAR_ALIGMENT, stations)){
             addToMostPopular(startStation, endId, endStation->stationName);
         }
     }
@@ -514,8 +512,13 @@ void getTopThreeCircularRentalStationsByMonth(stationsADT stations, int month, c
 
 static char * getMostPopularFromArrayAlpha(pStation station, size_t * amountOfTrips){
     qsort(station->mostPopularEndStations, station->sizeOfMostPopular, sizeof(*(station->mostPopularEndStations)),compareNameAndCount);
-    *amountOfTrips = station->mostPopularEndStations[0]->counter;
-    return station->mostPopularEndStations[0]->name;
+    if (station->mostPopularEndStations!=NULL)
+    {
+        *amountOfTrips = station->mostPopularEndStations->counter;
+        return station->mostPopularEndStations->name;
+    }
+    return NULL;
+    
 }
 
 char * getMostPopularFromStationAlpha(stationsADT stations, size_t * amountOfTrips){

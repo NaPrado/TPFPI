@@ -142,12 +142,14 @@ void query4(stationsADT stations){
     char * mostPopularName;
     size_t amountOfTrips;
     while(hasNextAlpha(stations)){
-        mostPopularName = getMostPopularFromStationAlpha(stations,&amountOfTrips);
-        char * name =getStationNameAlpha(stations);
-        char amountOfTripsStr[50];
-        sscanf(amountOfTripsStr,"%lu",&amountOfTrips);
-        writeRowQ4(csvQ4,name, mostPopularName, amountOfTripsStr);
-        addHTMLRow(tablaQ4,name, mostPopularName, amountOfTripsStr);
+        if ((mostPopularName = getMostPopularFromStationAlpha(stations,&amountOfTrips))!=NULL)
+        {
+            char * name =getStationNameAlpha(stations);
+            char amountOfTripsStr[10];
+            sprintf(amountOfTripsStr,"%lu",amountOfTrips);
+            writeRowQ4(csvQ4,name, mostPopularName, amountOfTripsStr);
+            addHTMLRow(tablaQ4,name, mostPopularName, amountOfTripsStr);
+        }
         nextAlpha(stations);
     }
     closeHTMLTable(tablaQ4);
