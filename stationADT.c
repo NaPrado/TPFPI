@@ -10,11 +10,14 @@
 
 #define MEMBER 1
 #define CASUAL 0 
-#define NOLIMITS 3
-#define NOUPPERLIMIT 4
-#define ALLLIMITS 5
-#define YEARSDIGIT 15 
+#define NO_LIMITS 3
+#define NO_UPPER_LIMIT 4
+#define ALL_LIMITS 5
 #define YEAR_ALIGMENT 1900 
+
+#define ERROR_ALLOCATION "Error alocando memoria\n"
+#define ARG_ERROR "Error en pasaje de argumentos para intervalo de años\n"
+#define ERROR_ITER "Uso invalido de iterador\n"
 
 enum DAYS           
 {     
@@ -63,7 +66,6 @@ struct stationsCDT
 {
     size_t startedTrips[DAYS_IN_WEEK];
     size_t endedTrips[DAYS_IN_WEEK];
-    // struct topThreeCircularStations topThreeInMonth[MONTHS_IN_YEAR];
     pStation firstAlpha;
     pStation firstCount;
     pStation iterAlpha;
@@ -71,10 +73,7 @@ struct stationsCDT
     bstADT tree;
     int floorYear;
     int ceilingYear; //de ser igual a INDICATOR_HAS_NO_UPPER_LIMIT significa q no hay limite superior
-    //int validPeriod;
 };
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define IS_WITHIN_INTERVAL(x,y,z) (((z) == INDICATOR_HAS_NO_UPPER_LIMIT) && ((y)==INDICATOR_HAS_NO_LOWER_LIMIT))?1:((z) == INDICATOR_HAS_NO_UPPER_LIMIT)? ((x)>=(y)):(((x)>=(y)) && (x)<=(z))
 
@@ -87,7 +86,7 @@ static char* copyString(const char * origin) {
 
     // Verificar si la asignación de memoria fue exitosa
     if (toReturn == NULL) {
-        perror("Error al asignar memoria");
+        perror(ERROR_ALLOCATION);
         exit(EXIT_FAILURE);
     }
 
@@ -98,17 +97,14 @@ static char* copyString(const char * origin) {
     return toReturn;
 }
 
-
 static int isValidInterval(int floor, int ceil){
     return (floor >= 0 && ceil >= 0 && floor <= ceil);
 }
 
-int isStrDigit(const char *string){
+static int strIsNumber(const char *string){
     int i=0;
-    while (*(string+i))
-    {
-        if (!isdigit(*(string+i)))
-        {
+    while (*(string+i)){
+        if (!isdigit(*(string+i))){
             return 0;
         }
         i++;
@@ -116,8 +112,8 @@ int isStrDigit(const char *string){
     return 1;
 }
 
-static int isInt(const char *string, int *num) {
-    if(isStrDigit(string)){
+static int strToInt(const char *string, int *num) {
+    if(strIsNumber(string)){
         *num=atoi(string);
         return 1;
     }
@@ -127,27 +123,27 @@ static int isInt(const char *string, int *num) {
 }
 
 static void yearValidator(int argc, const char * argv[], int * floorYear, int * ceilYear){
-    if (argc == NOLIMITS){ //no me pasan años
+    if (argc == NO_LIMITS){ //no me pasan años
         *floorYear=INDICATOR_HAS_NO_LOWER_LIMIT;
         *ceilYear=INDICATOR_HAS_NO_UPPER_LIMIT;
         return;
     }
-    else if(argc == NOUPPERLIMIT){ //se recibe un año entonces asumo q es el piso
-        if(isInt(argv[3],floorYear) && *floorYear>=0){
+    else if(argc == NO_UPPER_LIMIT){ //se recibe un año entonces asumo q es el piso
+        if(strToInt(argv[3],floorYear) && *floorYear>=0){
             *ceilYear = INDICATOR_HAS_NO_UPPER_LIMIT;
             return;
         }
         else{
-            printf("Error en pasaje de argumentos para intervalo de años\n");
+            printf(ARG_ERROR);
             exit(EXIT_FAILURE);
         }
     }
-    else if(argc == ALLLIMITS){ //se reciben ambos años
-        if(isInt(argv[3],floorYear)&&isInt(argv[4],ceilYear)&&isValidInterval(*floorYear,*ceilYear)){
+    else if(argc == ALL_LIMITS){ //se reciben ambos años
+        if(strToInt(argv[3],floorYear) && strToInt(argv[4],ceilYear) && isValidInterval(*floorYear,*ceilYear)){
             return;
         }
         else{
-            printf("Error en pasaje de argumentos para intervalo de años\n");
+            printf(ARG_ERROR);
             exit(EXIT_FAILURE);
         }
     }
@@ -156,7 +152,7 @@ static void yearValidator(int argc, const char * argv[], int * floorYear, int * 
         return;
     }
     else{
-        printf("Error en pasaje de argumentos\n");
+        printf(ARG_ERROR);
         exit(EXIT_FAILURE);
     }
 }
@@ -176,21 +172,24 @@ static pStation addStationRec(pStation alphaList,char * stationName, bstADT tree
     if(alphaList == NULL ||  (c=strcasecmp(alphaList->stationName, stationName)) > 0){
         //incorporacion a la lista
         pStation newNode = calloc(1,sizeof(struct station));
+        if(newNode == NULL){
+            printf(ERROR_ALLOCATION);
+            exit(EXIT_FAILURE);
+        }
         newNode->stationName = copyString(stationName);
-        newNode->tailAlpha =alphaList;
+        newNode->tailAlpha = alphaList;
         //incorporacion a el BST
         addToTree(tree,stationId,newNode);
         return newNode;
     }
     if(c<0){
-        alphaList->tailAlpha=addStationRec(alphaList->tailAlpha,stationName,tree,stationId);
+        alphaList->tailAlpha = addStationRec(alphaList->tailAlpha,stationName,tree,stationId);
     }
     return alphaList;
 }
 
-
 void addStation(stationsADT stations,char * stationName, size_t stationId){
-    stations->firstAlpha=addStationRec(stations->firstAlpha,stationName,stations->tree,stationId);
+    stations->firstAlpha = addStationRec(stations->firstAlpha,stationName,stations->tree,stationId);
     return;
 }
 
@@ -218,13 +217,13 @@ static void addToMostPopular(pStation startStation, size_t endId, char * endStat
     startStation->mostPopularEndStations = realloc(startStation->mostPopularEndStations, (startStation->sizeOfMostPopular + 1) * sizeof(struct nameIdAndCounter));
     for(int i = 0; i<startStation->sizeOfMostPopular; i++){
         if(startStation->mostPopularEndStations[i].id == endId){
-            startStation->mostPopularEndStations[i].counter+=1;
+            startStation->mostPopularEndStations[i].counter += 1;
             return;
         }
     }
     
     if(startStation->mostPopularEndStations == NULL){
-        printf("Error allocando memoria\n");
+        printf(ERROR_ALLOCATION);
         exit(EXIT_FAILURE);
     }
     startStation->mostPopularEndStations[startStation->sizeOfMostPopular].counter = 1;
@@ -235,7 +234,7 @@ static void addToMostPopular(pStation startStation, size_t endId, char * endStat
 
 void addRental(struct tm startDate,size_t startId,struct tm endDate, size_t endId, char association, stationsADT stations){
     pStation startStation,endStation;
-    if ((startStation = existId(startId,stations->tree))==NULL||(endStation = existId(endId,stations->tree))==NULL){
+    if ((startStation = existId(startId,stations->tree)) == NULL||(endStation = existId(endId,stations->tree)) == NULL){
         return;
     }
     
@@ -250,6 +249,10 @@ void addRental(struct tm startDate,size_t startId,struct tm endDate, size_t endI
     if (startId != endId){
         if (startStation->oldestRental == NULL || difftime(mktime(&startDate),mktime(&(startStation->oldestRental->dateStart))) < 0 ){
             pRental newRental=calloc(1,sizeof(struct rental));
+            if(newRental == NULL){
+                printf(ERROR_ALLOCATION);
+                exit(EXIT_FAILURE); 
+            }
             newRental->dateEnd=endDate;
             newRental->dateStart=startDate;
             newRental->stationNameEnd=endStation->stationName;
@@ -262,10 +265,8 @@ void addRental(struct tm startDate,size_t startId,struct tm endDate, size_t endI
     }
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 static void freeRentals(pStation stations){
-    if (stations==NULL||stations->oldestRental==NULL){
+    if (stations == NULL || stations->oldestRental == NULL){
         return;
     }
     free(stations->oldestRental);
@@ -291,8 +292,6 @@ void freeAssets(stationsADT stations){
     free(stations);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 // Función para obtener el puntero al nodo con mayor cantidad de viajes
 static pStation getNodeWithMaxRentals(pStation stations) {
     pStation maxNode = NULL;
@@ -311,8 +310,9 @@ static pStation linkCount(pStation listAlpha,pStation listCount){
         listAlpha->tailCount = listCount;
         return listAlpha;
     }
-    if(c<=0)
+    if(c<=0){
         listCount->tailCount = linkCount(listAlpha,listCount->tailCount);
+    }
     return listCount;
 }
 
@@ -322,7 +322,6 @@ static void orderByCount(stationsADT stations){
         stations->firstCount = linkCount(aux,stations->firstCount);
         aux = aux->tailAlpha;
     }
-    
     return;
 }
 
@@ -338,7 +337,7 @@ int hasNextCount(stationsADT stations){
 
 void nextCount(stationsADT stations) {
   if (!hasNextCount(stations)) {
-    fprintf(stderr, "Uso invalido de iteradorsdasdasds\n");
+    fprintf(stderr, ERROR_ITER);
     exit(EXIT_FAILURE);
   }
   stations->iterCount=stations->iterCount->tailCount;
@@ -346,8 +345,7 @@ void nextCount(stationsADT stations) {
 }
 
 size_t getMembersCount(stationsADT stations){
-    if (stations->iterCount==NULL)
-    {
+    if (stations->iterCount == NULL){
         fprintf(stderr, "No se inicio el iterador\n");
         exit(EXIT_FAILURE);
     }
@@ -355,8 +353,7 @@ size_t getMembersCount(stationsADT stations){
 }
 
 size_t getCasualsCount(stationsADT stations){
-    if (stations->iterCount==NULL)
-    {
+    if (stations->iterCount == NULL){
         fprintf(stderr, "No se inicio el iterador\n");
         exit(EXIT_FAILURE);
     }
@@ -364,8 +361,7 @@ size_t getCasualsCount(stationsADT stations){
 }
 
 size_t getTotalCount(stationsADT stations){
-    if (stations->iterCount==NULL)
-    {
+    if (stations->iterCount == NULL){
         fprintf(stderr, "No se inicio el iterador\n");
         exit(EXIT_FAILURE);
     }
@@ -373,41 +369,36 @@ size_t getTotalCount(stationsADT stations){
 }
 
 char * getStationNameCount(stationsADT stations){
-    if (stations->iterCount==NULL)
-    {
+    if (stations->iterCount == NULL){
         fprintf(stderr, "No se inicio el iterador\n");
         exit(EXIT_FAILURE);
     }
     return stations->iterCount->stationName;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 int hasRentsAlpha(stationsADT stations){
-    if ( !hasNextAlpha(stations)) {
-    fprintf(stderr, "Uso invalido de iterador\n");
-    exit(1);
+    if (!hasNextAlpha(stations)){
+    fprintf(stderr, ERROR_ITER);
+    exit(EXIT_FAILURE);
     }
     return stations->iterAlpha->oldestRental!=NULL;//tambien se puede preguntar si total es 0
 }
 
 char * getOldestRentalStationNameEndAlpha(stationsADT stations){
-    if ( !hasNextAlpha(stations)) {
-    fprintf(stderr, "Uso invalido de iterador\n");
-    exit(1);
+    if (!hasNextAlpha(stations)) {
+    fprintf(stderr, ERROR_ITER);
+    exit(EXIT_FAILURE);
     }
     return stations->iterAlpha->oldestRental->stationNameEnd;
 }
 
 struct tm getOldestRentalStartDateAlpha(stationsADT stations){
-    if ( !hasNextAlpha(stations)) {
-    fprintf(stderr, "Uso invalido de iterador\n");
-    exit(1);
+    if (!hasNextAlpha(stations)) {
+    fprintf(stderr, ERROR_ITER);
+    exit(EXIT_FAILURE);
     }
     return stations->iterAlpha->oldestRental->dateStart;   
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 size_t * getStartedTrips(stationsADT stations){
     return stations->startedTrips;
@@ -417,20 +408,18 @@ size_t * getEndedTrips(stationsADT stations){
     return stations->endedTrips;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void toBeginAlpha(stationsADT stations){
     stations->iterAlpha=stations->firstAlpha;
     return;
 }
 
 int hasNextAlpha(stationsADT stations){
-    return (stations->iterAlpha!=NULL);
+    return (stations->iterAlpha != NULL);
 }
 
 void nextAlpha(stationsADT stations){
   if ( !hasNextAlpha(stations)) {
-    fprintf(stderr, "Uso invalido de iterador\n");
+    fprintf(stderr, ERROR_ITER);
     exit(EXIT_FAILURE);
   } 
   stations->iterAlpha=stations->iterAlpha->tailAlpha;
@@ -438,7 +427,7 @@ void nextAlpha(stationsADT stations){
 }
 
 char * getStationNameAlpha(stationsADT stations){
-    if (stations->iterAlpha==NULL)
+    if (stations->iterAlpha == NULL)
     {
         fprintf(stderr, "No se inicio el iterador\n");
         exit(EXIT_FAILURE);
@@ -458,8 +447,7 @@ static int compareNameAndCount(const void * elem1,const void * elem2){
 
 static char * getMostPopularFromArrayAlpha(pStation station, size_t * amountOfTrips){
     qsort(station->mostPopularEndStations, station->sizeOfMostPopular, sizeof(*(station->mostPopularEndStations)),compareNameAndCount);
-    if (station->mostPopularEndStations!=NULL)
-    {
+    if (station->mostPopularEndStations != NULL){
         *amountOfTrips = station->mostPopularEndStations->counter;
         return station->mostPopularEndStations->name;
     }
