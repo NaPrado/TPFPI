@@ -29,24 +29,6 @@ static int countDigit(int num) {
     return count;
 }
 
-/* char * intToAlocStr(int num){
-    char * str=NULL;
-    int i=0;
-    while (num!=0){
-        if (i%BLOCK==0){
-            str=realloc(str,BLOCK+i);
-        }
-        *(str+i)=(num%10)+'0';
-        num/=10;
-        i++;
-    }
-    *(str+i)='\0';
-    return str;
-}
- */
-
-
-
 static void writeQ1Rec(stationsADT stations, htmlTable tablaQ1, FILE * csvQ1){
     while (hasNextCount(stations)){
         size_t members=getMembersCount(stations);
