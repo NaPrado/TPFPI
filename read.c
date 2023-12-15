@@ -79,6 +79,7 @@ static struct tm saveDate(char * date){
             }
         token = strtok(NULL, DATE_DELIM);
     }
+    moment.tm_isdst=-1;
     return moment;
 }
 
@@ -94,7 +95,6 @@ static void readCSVFileBikes(char const *argv[],stationsADT stations){
     char s[MAXCHARSPERLINE];
     //libera la primer linea
     fgets(s,MAXCHARSPERLINE,bikesFile);
-    int i=0;
     while (fgets(s,MAXCHARSPERLINE, bikesFile)){
         struct tm startDate;
         struct tm endDate;
@@ -134,8 +134,6 @@ static void readCSVFileBikes(char const *argv[],stationsADT stations){
             }
             startDate=saveDate(sDate);
             endDate=saveDate(eDate);
-
-            i++;
             addRental(startDate,idStart,endDate,idEnd,isMember,stations);  
         }          
     }

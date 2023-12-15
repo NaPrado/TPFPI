@@ -7,14 +7,14 @@
 
 int main(int argc, char const *argv[])
 {   
+    time_t t=time(NULL);
     stationsADT new= newStationsGroup(argc,argv);
     readCSVFileStation(argv,new);
-    time_t t=time(NULL);
     query1(new);
     query2(new);
     query3(new);
     query4(new);
     freeAssets(new);
-    printf("%ld",time(NULL)-t);
+    printf("%ld\n",time(NULL)-t);
     return 0;
 }

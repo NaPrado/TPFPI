@@ -247,7 +247,6 @@ void addRental(struct tm startDate,size_t startId,struct tm endDate, size_t endI
     if(association == CASUAL){
         startStation->amountRentalsByCasuals += 1;
     }
-
     if (startId != endId){
         if (startStation->oldestRental == NULL || difftime(mktime(&startDate),mktime(&(startStation->oldestRental->dateStart))) < 0 ){
             pRental newRental=calloc(1,sizeof(struct rental));
@@ -259,7 +258,7 @@ void addRental(struct tm startDate,size_t startId,struct tm endDate, size_t endI
         }
         if(isWithinYearInterval(startDate.tm_year+YEAR_ALIGMENT,endDate.tm_year+YEAR_ALIGMENT, stations)){
             addToMostPopular(startStation, endId, endStation->stationName);
-        }
+        } 
     }
 }
 
