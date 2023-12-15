@@ -6,7 +6,7 @@
 #define FORMATNYC 0
 #endif
 #ifndef FORMATMON
-#define FORMATMON 1
+#define FORMATMON 0
 #endif
 
 #if FORMATNYC
@@ -34,7 +34,6 @@ enum NYCSTATIONS {
     NYCSTATIONS_FORMAT_ENUM
 };
 
-
 #elif FORMATMON
 #define MONBIKES_FORMAT_ENUM \
     dateStart, \
@@ -58,9 +57,6 @@ enum MONBIKES {
 enum MONSTATIONS {
     MONSTATIONS_FORMAT_ENUM
 };
-
-
-
 #endif
 
 /*

@@ -450,7 +450,7 @@ static int compareNameAndCount(const void * elem1,const void * elem2){
     int c;
     pNameIdAndCounter elemA = (pNameIdAndCounter)elem1;
     pNameIdAndCounter elemB = (pNameIdAndCounter)elem2;
-    if((c = elemA->counter - elemB->counter) != 0){
+    if((c = elemB->counter - elemA->counter) != 0){
         return c;
     }
     return strcmp(elemA->name,elemB->name);
