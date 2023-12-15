@@ -48,9 +48,9 @@ static int countDigit(int num) {
 
 
 static void writeQ1Rec(stationsADT stations, htmlTable tablaQ1, FILE * csvQ1){
-    size_t members=getMembersQ1(stations);
-    size_t casuals=getCasualsQ1(stations);
-    size_t total=getTotalQ1(stations);
+    size_t members=getMembersCount(stations);
+    size_t casuals=getCasualsCount(stations);
+    size_t total=getTotalCount(stations);
 
     char * membersStr=calloc(1,sizeof(char)*(countDigit(members)+1));
     char *casualsStr=calloc(1,sizeof(char)*(countDigit(casuals)+1));
@@ -60,17 +60,17 @@ static void writeQ1Rec(stationsADT stations, htmlTable tablaQ1, FILE * csvQ1){
     sprintf(casualsStr,"%zu",casuals);
     sprintf(totalStr,"%zu",total);
 
-    char * stationName=getStationNameQ1(stations);
+    char * stationName=getStationNameCount(stations);
 
     addHTMLRow(tablaQ1,stationName,membersStr,casualsStr,totalStr);
     writeRowQ1(csvQ1,stationName,membersStr,casualsStr,totalStr);
     free(membersStr);
     free(casualsStr);
     free(totalStr);
-    if (!hasNextQ1(stations)){
+    if (!hasNextCount(stations)){
         return;
     }
-    nextQ1(stations);
+    nextCount(stations);
     writeQ1Rec(stations,tablaQ1,csvQ1);
     return;
 }
@@ -79,27 +79,27 @@ void query1(stationsADT stations){
     FILE * csvQ1=newFile("query1.csv");
     writeHeaderQ1(csvQ1);
     htmlTable tablaQ1 = newTable("query1.html",4,"bikeStation","memberTrips","casualTrips","allTrips");
-    toBeginQ1(stations);
+    toBeginCount(stations);
     writeQ1Rec(stations,tablaQ1,csvQ1);
     closeHTMLTable(tablaQ1);
     fclose(csvQ1);
 }
 
 static void writeQ2Rec(stationsADT stations, htmlTable tablaQ2, FILE * csvQ2){
-    while (hasNextQ2(stations))
+    while (hasNextAlpha(stations))
     {
-        if (hasRentsQ2(stations))
+        if (hasRentsAlpha(stations))
         {
-            char * stationNamestr = strcpy(stationNamestr,getStationNameQ2(stations));
-            char * stationNameEndStr = strcpy(stationNameEndStr,getOldestRentalStationNameEndQ2(stations));
-            struct tm startDate = getOldestRentalStartDateQ2(stations);
+            char * stationNamestr = getStationNameAlpha(stations);
+            char * stationNameEndStr = getOldestRentalStationNameEndAlpha(stations);
+            struct tm startDate = getOldestRentalStartDateAlpha(stations);
             char * startDateStr = calloc(1,sizeof(char)*QUERY_2_DATE_FORMAT_LONGITUD);
             strftime(startDateStr,QUERY_2_DATE_FORMAT_LONGITUD,"%d/%m/%Y %H:%M",&(startDate));
             addHTMLRow(tablaQ2,stationNamestr,stationNameEndStr,startDateStr);
             writeRowQ2(csvQ2,stationNamestr,stationNameEndStr,startDateStr);
             free(startDateStr);
         }
-        nextQ2(stations);
+        nextAlpha(stations);
     }
 }
 
@@ -109,15 +109,15 @@ void query2(stationsADT stations){
     FILE * csvQ2 = newFile("query2.csv");
     writeHeaderQ2(csvQ2);
     htmlTable tablaQ2 = newTable("query2.html",3,"bikeStation","bikeEndStation","oldestDateTime");
-    toBeginQ2(stations);
+    toBeginAlpha(stations);
     writeQ2Rec(stations,tablaQ2,csvQ2);
     closeHTMLTable(tablaQ2);
     fclose(csvQ2);
 }
 
 void query3(stationsADT stations){
-    size_t * startedTrips=getStartedTripsQ3(stations);
-    size_t * endedTrips=getEndedTripsQ3(stations);
+    size_t * startedTrips=getStartedTrips(stations);
+    size_t * endedTrips=getEndedTrips(stations);
     char * weekDays[]={"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};
     errno = 0;
     FILE * csvQ3 = newFile("query3.csv");
@@ -139,22 +139,26 @@ void query3(stationsADT stations){
 }
 
 void query4(stationsADT stations){
-    FILE * csvQ4 = newFile("query4.csv");
-    writeHeaderQ4(csvQ4);
-    htmlTable tablaQ4 = newTable("query4.html",3,"bikeStation","mostPopRouteEndStation","mostPopRouteTrips");
-    toBeginQ4(stations);
-    char * mostPopularName;
-    size_t amountOfTrips;
-    while(hasNextQ4(stations)){
-        mostPopularName = getMostPopularFromStationQ4(stations,&amountOfTrips);
-        char * name =getStationNameQ4(stations);
-        char * amountOfTripsStr=NULL;
-        sscanf(amountOfTripsStr,"%lu",&amountOfTrips);
-        writeRowQ4(csvQ4,name, mostPopularName, amountOfTripsStr);
-        addHTMLRow(tablaQ4,name, mostPopularName, amountOfTripsStr);
-        free(amountOfTripsStr);
-        nextQ4(stations);
+    if (getValidPeriod(stations))
+    {
+        FILE * csvQ4 = newFile("query4.csv");
+        writeHeaderQ4(csvQ4);
+        htmlTable tablaQ4 = newTable("query4.html",3,"bikeStation","mostPopRouteEndStation","mostPopRouteTrips");
+        toBeginAlpha(stations);
+        char * mostPopularName;
+        size_t amountOfTrips;
+        while(hasNextAlpha(stations)){
+            mostPopularName = getMostPopularFromStationAlpha(stations,&amountOfTrips);
+            char * name =getStationNameAlpha(stations);
+            char * amountOfTripsStr=NULL;
+            sscanf(amountOfTripsStr,"%lu",&amountOfTrips);
+            writeRowQ4(csvQ4,name, mostPopularName, amountOfTripsStr);
+            addHTMLRow(tablaQ4,name, mostPopularName, amountOfTripsStr);
+            free(amountOfTripsStr);
+            nextAlpha(stations);
+        }
     }
+    return;
 }
 
 /* void query5(stationsADT stations){

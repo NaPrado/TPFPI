@@ -1,5 +1,5 @@
 COMPILER = gcc
-OUTPUT_FILE = bikeSharing.out
+OUTPUT_FILE = bikeSharing
 FRONT = bikeSharing.c
 CFLAGS = -Wall -pedantic -std=c99 -fsanitize=address -g
 FORMATFLAG = -DFORMATMON\=1

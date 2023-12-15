@@ -177,5 +177,6 @@ void readCSVFileStation(char const * argv[],stationsADT stations){
         addStation(stations,name,id);
     }
     fclose(stationsFile);
+    toBeginAlpha(stations);
     readCSVFileBikes(argv,stations);
 }
