@@ -447,7 +447,8 @@ static int compareNameAndCount(const void * elem1,const void * elem2){
     if((c = elemB->counter - elemA->counter) != 0){
         return c;
     }
-    return strcmp(elemA->name,elemB->name);
+
+    return strcasecmp(elemA->name,elemB->name);
 }
 
 static char * getMostPopularFromArrayAlpha(pStation station, size_t * amountOfTrips){
