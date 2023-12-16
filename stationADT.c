@@ -13,7 +13,11 @@
 #define NO_LIMITS 3
 #define NO_UPPER_LIMIT 4
 #define ALL_LIMITS 5
+#define WEEK_ALIGMENT 1
+#define MONTH_ALIGMENT 1
 #define YEAR_ALIGMENT 1900 
+#define YEAR_FLOOR_ARGUMENT 3
+#define YEAR_CEIL_ARGUMENT 4
 
 #define ERROR_ALLOCATION "Error alocando memoria\n"
 #define ARG_ERROR "Error en pasaje de argumentos para intervalo de años\n"
@@ -131,7 +135,7 @@ static void yearValidator(int argc, const char * argv[], int * floorYear, int * 
         return;
     }
     else if(argc == NO_UPPER_LIMIT){ //se recibe un año entonces asumo q es el piso
-        if(strToInt(argv[3],floorYear) && *floorYear>=0){
+        if(strToInt(argv[YEAR_FLOOR_ARGUMENT],floorYear) && *floorYear>=0){
             *ceilYear = INDICATOR_HAS_NO_UPPER_LIMIT;
             return;
         }
@@ -141,7 +145,7 @@ static void yearValidator(int argc, const char * argv[], int * floorYear, int * 
         }
     }
     else if(argc == ALL_LIMITS){ //se reciben ambos años
-        if(strToInt(argv[3],floorYear) && strToInt(argv[4],ceilYear) && isValidInterval(*floorYear,*ceilYear)){
+        if(strToInt(argv[YEAR_FLOOR_ARGUMENT],floorYear) && strToInt(argv[YEAR_CEIL_ARGUMENT],ceilYear) && isValidInterval(*floorYear,*ceilYear)){
             return;
         }
         else{
@@ -149,7 +153,7 @@ static void yearValidator(int argc, const char * argv[], int * floorYear, int * 
             exit(EXIT_FAILURE);
         }
     }
-    else if (argc > 5 && WARNING_FLAG){
+    else if (argc > ALL_LIMITS && WARNING_FLAG){
         printf(WARNING_ARGS_MESSAGE);
         return;
     }
@@ -205,13 +209,13 @@ static int getWeekDay(int day,int month,int year){
         return sunday;
     }
     else{
-        return weekday-1;
+        return weekday-WEEK_ALIGMENT;
     }
 }
 
 static void countTrips(stationsADT stations,struct tm startDate,struct tm endDate){
-    stations->startedTrips[getWeekDay(startDate.tm_mday,startDate.tm_mon+1,startDate.tm_year+1900)]++;
-    stations->endedTrips[getWeekDay(endDate.tm_mday,endDate.tm_mon+1,endDate.tm_year+1900)]++;
+    stations->startedTrips[getWeekDay(startDate.tm_mday,startDate.tm_mon+MONTH_ALIGMENT,startDate.tm_year+YEAR_ALIGMENT)]++;
+    stations->endedTrips[getWeekDay(endDate.tm_mday,endDate.tm_mon+MONTH_ALIGMENT,endDate.tm_year+YEAR_ALIGMENT)]++;
     return;
 }
 
@@ -227,7 +231,7 @@ static void addToMostPopular(pStation startStation, size_t endId, char * endStat
     }
     for(int i = 0; i<startStation->sizeOfMostPopular; i++){
         if(startStation->mostPopularEndStations[i].id == endId){
-            startStation->mostPopularEndStations[i].counter += 1;
+            startStation->mostPopularEndStations[i].counter ++;
             return;
         }
     }
@@ -244,12 +248,12 @@ void addRental(struct tm startDate,size_t startId,struct tm endDate, size_t endI
     }
     
     countTrips(stations,startDate,endDate);
-    startStation->totalAmountRentals += 1;
+    startStation->totalAmountRentals ++;
     if(association == MEMBER){
-        startStation->amountRentalsByMembers += 1;
+        startStation->amountRentalsByMembers ++;
     }
     if(association == CASUAL){
-        startStation->amountRentalsByCasuals += 1;
+        startStation->amountRentalsByCasuals ++;
     }
     if (startId != endId){
         if (startStation->oldestRental == NULL || difftime(mktime(&startDate),mktime(&(startStation->oldestRental->dateStart))) < 0 ){
@@ -331,7 +335,10 @@ static void orderByCount(stationsADT stations){
 }
 
 void toBeginCount(stationsADT stations){
-    orderByCount(stations);
+    if (stations->iterCount==NULL)
+    {
+        orderByCount(stations);
+    }
     stations->iterCount=getNodeWithMaxRentals(stations->firstAlpha);
     return;
 }
@@ -457,6 +464,7 @@ static char * getMostPopularFromArrayAlpha(pStation station, size_t * amountOfTr
         *amountOfTrips = station->mostPopularEndStations->counter;
         return station->mostPopularEndStations->name;
     }
+    *amountOfTrips=0;
     return NULL;
     
 }

@@ -76,8 +76,7 @@ static void readCSVFileBikes(char const *argv[],stationsADT stations){
         char * sDate,* eDate;
         int idStart, idEnd, isMember;
         char * token=strtok(s,DELIM);
-        if (token!=NULL)
-        {
+        if (token!=NULL){
             for (int q = 0; token!=NULL; q++){            
                     switch (q) {
                         case dateStart:

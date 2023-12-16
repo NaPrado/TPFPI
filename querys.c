@@ -6,15 +6,16 @@
 #include "htmlTable.h"
 #include "writeCSV.h"
 #include "stationADT.h"
-#define QUERY_2_DATE_FORMAT_LONGITUD 20
-#define BLOCK 10
+
 #define FIRST 0
-#define SECOND 1
 #define THIRD 2
-#define STRMAXLONG 20
-#define ERROR_ALLOCATION "Error alocando memoria\n"
+#define BLOCK 10
+#define SECOND 1
 #define SET_ERRNO 0
+#define STRMAXLONG 20
 #define AMOUNT_OF_TRIPS_DIGIT 10
+#define QUERY_2_DATE_FORMAT_LONGITUD 20
+#define ERROR_ALLOCATION "Error alocando memoria\n"
 
 static int countDigit(int num) {
     int count = 0;
@@ -111,7 +112,7 @@ void query3(stationsADT stations){
     size_t * startedTrips=getStartedTrips(stations);
     size_t * endedTrips=getEndedTrips(stations);
     char * weekDays[]={"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};
-    errno = 0;
+    errno = SET_ERRNO;
     FILE * csvQ3 = newFile("query3.csv");
     writeHeaderQ3(csvQ3);
     htmlTable tablaQ3 = newTable("query3.html",3,"weekDay","startedTrips","endedTrips");

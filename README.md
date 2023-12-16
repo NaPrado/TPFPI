@@ -1,6 +1,7 @@
 # TPFPI
 Trabajo Practico Final de Programacion Imperativa 
 Autores: Nahuel Ignacio Prado y Matias Cuneo Gima
+Alumnos del Instituto Tecnologico de Buenos Aires (ITBA)
 
 ## Archivos
 
@@ -34,7 +35,7 @@ Esta libreria usa stationADT para poder obtener los datos ya procesados y aparti
 #### CUIDADO AL COMPILAR AL EJECUTAR MAKEFILE SE BORRARÁN TODOS LOS ARCHIVOS .o EN EL DIRECTORIO.
 
 Para compilar lo unico que hay que hacer es ejecutar el comando make y se generaran dos archivos ejecutables
-bikeSharingMON y bikeSharingNYC. Cada uno corresponde con una ciudad, como se indica en su nombre.
+bikeSharingMON y bikeSharingNYC Cada uno corresponde con una ciudad, como se indica en su nombre.
 
 ## Ejecución
 
