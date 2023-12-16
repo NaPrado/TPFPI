@@ -5,7 +5,6 @@
 #include <time.h>
 
 #define DAYS_IN_WEEK 7
-// #define MONTHS_IN_YEAR 12
 
 #define WARNING_FLAG 1 //activa una advertencia si se ingresan más de 5 argumentos
 #define INDICATOR_HAS_NO_UPPER_LIMIT -1
