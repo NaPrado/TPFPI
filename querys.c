@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include "querys.h"
 #include "htmlTable.h"
 #include "writeCSV.h"
 #include "stationADT.h"
@@ -11,45 +12,53 @@
 #define SECOND 1
 #define THIRD 2
 #define STRMAXLONG 20
+#define ERROR_ALLOCATION "Error alocando memoria\n"
+#define SET_ERRNO 0
+#define AMOUNT_OF_TRIPS_DIGIT 10
 
 static int countDigit(int num) {
     int count = 0;
-
-    // Manejar caso especial para el número 0
+    // Caso especial para el número 0
     if (num == 0) {
         return 1;
     }
-
     // Contar los dígitos del número
     while (num != 0) {
         num /= 10;
         count++;
     }
-
     return count;
 }
 
 static void writeQ1Rec(stationsADT stations, htmlTable tablaQ1, FILE * csvQ1){
     while (hasNextCount(stations)){
+
         size_t members=getMembersCount(stations);
         size_t casuals=getCasualsCount(stations);
         size_t total=getTotalCount(stations);
         
         char * membersStr=calloc(1,sizeof(char)*(countDigit(members)+1));
-        char *casualsStr=calloc(1,sizeof(char)*(countDigit(casuals)+1));
-        char *totalStr=calloc(1,sizeof(char)*(countDigit(total)+1));
+        char * casualsStr=calloc(1,sizeof(char)*(countDigit(casuals)+1));
+        char * totalStr=calloc(1,sizeof(char)*(countDigit(total)+1));
+        char * stationName=getStationNameCount(stations);
+
+        if (membersStr==NULL || casualsStr==NULL || totalStr ==NULL){
+            perror(ERROR_ALLOCATION);
+            exit(EXIT_FAILURE);
+        }
+        
 
         sprintf(membersStr,"%zu",members);
         sprintf(casualsStr,"%zu",casuals);
         sprintf(totalStr,"%zu",total);
 
-        char * stationName=getStationNameCount(stations);
-
         addHTMLRow(tablaQ1,stationName,membersStr,casualsStr,totalStr);
         writeRowQ1(csvQ1,stationName,membersStr,casualsStr,totalStr);
+
         free(membersStr);
         free(casualsStr);
         free(totalStr);
+        
         nextCount(stations);
         }
     return;
@@ -74,6 +83,11 @@ static void writeQ2Rec(stationsADT stations, htmlTable tablaQ2, FILE * csvQ2){
             char * stationNameEndStr = getOldestRentalStationNameEndAlpha(stations);
             struct tm startDate = getOldestRentalStartDateAlpha(stations);
             char * startDateStr = calloc(1,sizeof(char)*QUERY_2_DATE_FORMAT_LONGITUD);
+            if (startDateStr==NULL){
+                perror(ERROR_ALLOCATION);
+                exit(EXIT_FAILURE);
+            }
+            
             strftime(startDateStr,QUERY_2_DATE_FORMAT_LONGITUD,"%d/%m/%Y %H:%M",&(startDate));
             addHTMLRow(tablaQ2,stationNamestr,stationNameEndStr,startDateStr);
             writeRowQ2(csvQ2,stationNamestr,stationNameEndStr,startDateStr);
@@ -84,8 +98,6 @@ static void writeQ2Rec(stationsADT stations, htmlTable tablaQ2, FILE * csvQ2){
 }
 
 void query2(stationsADT stations){
-
-    errno = 0;
     FILE * csvQ2 = newFile("query2.csv");
     writeHeaderQ2(csvQ2);
     htmlTable tablaQ2 = newTable("query2.html",3,"bikeStation","bikeEndStation","oldestDateTime");
@@ -124,14 +136,12 @@ void query4(stationsADT stations){
     char * mostPopularName;
     size_t amountOfTrips;
     while(hasNextAlpha(stations)){
-        if ((mostPopularName = getMostPopularFromStationAlpha(stations,&amountOfTrips))!=NULL)
-        {
-            char * name =getStationNameAlpha(stations);
-            char amountOfTripsStr[10];
-            sprintf(amountOfTripsStr,"%lu",amountOfTrips);
-            writeRowQ4(csvQ4,name, mostPopularName, amountOfTripsStr);
-            addHTMLRow(tablaQ4,name, mostPopularName, amountOfTripsStr);
-        }
+        mostPopularName = getMostPopularFromStationAlpha(stations,&amountOfTrips);
+        char * name =getStationNameAlpha(stations);
+        char amountOfTripsStr[AMOUNT_OF_TRIPS_DIGIT];
+        sprintf(amountOfTripsStr,"%lu",amountOfTrips);
+        writeRowQ4(csvQ4,name, mostPopularName, amountOfTripsStr);
+        addHTMLRow(tablaQ4,name, mostPopularName, amountOfTripsStr);
         nextAlpha(stations);
     }
     closeHTMLTable(tablaQ4);

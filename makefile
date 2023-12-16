@@ -8,11 +8,11 @@ FORMATNYC = -DFORMATNYC\=1
 
 all: programaNYC programaMON clean
 
-programaNYC: $(FRONT) stationADT.o readNYC.o htmlTable.o treeADT.o querysADT.o writeCSV.o
-	$(COMPILER) stationADT.o readNYC.o treeADT.o querysADT.o htmlTable.o writeCSV.o $(FRONT) -o $(OUTPUT_FILE_NYC) $(CFLAGS)
+programaNYC: $(FRONT) stationADT.o readNYC.o htmlTable.o treeADT.o querys.o writeCSV.o
+	$(COMPILER) stationADT.o readNYC.o treeADT.o querys.o htmlTable.o writeCSV.o $(FRONT) -o $(OUTPUT_FILE_NYC) $(CFLAGS)
 
-programaMON: $(FRONT) stationADT.o readMON.o htmlTable.o treeADT.o querysADT.o writeCSV.o
-	$(COMPILER) stationADT.o readMON.o treeADT.o querysADT.o htmlTable.o writeCSV.o $(FRONT) -o $(OUTPUT_FILE_MON) $(CFLAGS)
+programaMON: $(FRONT) stationADT.o readMON.o htmlTable.o treeADT.o querys.o writeCSV.o
+	$(COMPILER) stationADT.o readMON.o treeADT.o querys.o htmlTable.o writeCSV.o $(FRONT) -o $(OUTPUT_FILE_MON) $(CFLAGS)
 
 stationADT.o: stationADT.c
 	$(COMPILER) $(CFLAGS) -c stationADT.c
@@ -26,8 +26,8 @@ readNYC.o: read.c
 treeADT.o: treeADT.c
 	$(COMPILER) $(CFLAGS) -c treeADT.c
 
-querysADT.o: querysADT.c
-	$(COMPILER) $(CFLAGS) -c querysADT.c
+querys.o: querys.c
+	$(COMPILER) $(CFLAGS) -c querys.c
 
 htmlTable.o: htmlTable.c
 	$(COMPILER) $(CFLAGS) -c htmlTable.c

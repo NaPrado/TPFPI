@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "htmlTable.h"
 #include "writeCSV.h"
-#define DELIM ";"
+
 #define ESCAPE_N "\n"
 #define TOPQ1 4
 #define LASTQ1 (TOPQ1-1)
@@ -12,17 +12,16 @@
 #define LASTQ3 (TOPQ3-1)
 #define TOPQ4 3
 #define LASTQ4 (TOPQ4-1)
-#define TOPQ5 4
-#define LASTQ5 (TOPQ5-1)
 #define WRITETEXT "wt"
+#define SET_ERRNO 0
 
 
 
 FILE * newFile(char * name){
-    errno = 0;
+    errno = SET_ERRNO;
     FILE * file=fopen(name,WRITETEXT);
-    if(errno != 0 || file==NULL){
-        perror("Ocurrio un error mientrar se creaba algun archivo\n");
+    if(errno != SET_ERRNO || file==NULL){
+        perror("Ocurrio un error mientras se creaba algun archivo\n");
         exit (EXIT_FAILURE);
     }
     return file;
@@ -106,28 +105,6 @@ void writeRowQ4(FILE * stream,char * name,char * mostPopRouteEndStation,char * m
         switch (i)
         {
         case LASTQ4:
-            fputs(ESCAPE_N,stream);
-            break;
-        
-        default:
-            fputs(DELIM,stream);
-            break;
-        }
-    }
-}
-
-void writeHeaderQ5(FILE * stream){
-    fputs("month;loopsTop1St;loopsTop2St;loopsTop3St\n",stream);
-}
-
-void writeRowQ5(FILE * stream,char * month,char * loopsTop1St,char * loopsTop2St,char * loopsTop3St){
-    char * info[]={month,loopsTop1St,loopsTop2St,loopsTop3St};
-    for (size_t i = 0; i < TOPQ5; i++)
-    {
-        fputs(info[i],stream);
-        switch (i)
-        {
-        case LASTQ5:
             fputs(ESCAPE_N,stream);
             break;
         

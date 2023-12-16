@@ -17,7 +17,9 @@
 
 #define ERROR_ALLOCATION "Error alocando memoria\n"
 #define ARG_ERROR "Error en pasaje de argumentos para intervalo de años\n"
+#define WARNING_ARGS_MESSAGE "Advetencia, la cantidad de argumentos es mayor a la solicitada\n"
 #define ERROR_ITER "Uso invalido de iterador\n"
+#define ITER_NOT_ASSIGN_ERROR "No se ha inicializado el iterador\n"
 
 enum DAYS           
 {     
@@ -147,8 +149,8 @@ static void yearValidator(int argc, const char * argv[], int * floorYear, int * 
             exit(EXIT_FAILURE);
         }
     }
-    else if (argc > 5){
-        printf("Advetencia, la cantidad de argumentos es mayor a la solicitada\n");
+    else if (argc > 5 && WARNING_FLAG){
+        printf(WARNING_ARGS_MESSAGE);
         return;
     }
     else{
@@ -161,6 +163,10 @@ stationsADT newStationsGroup(int argc, const char * argv[]){
     int ceilingYear,floorYear;
     yearValidator(argc,argv,&floorYear,&ceilingYear);
     stationsADT new = calloc(1,sizeof(struct stationsCDT));
+    if (new == NULL) {
+        perror(ERROR_ALLOCATION);
+        exit(EXIT_FAILURE);
+    }
     new->tree=newtree();
     new->ceilingYear = ceilingYear;
     new->floorYear = floorYear;
@@ -215,16 +221,15 @@ static int isWithinYearInterval(int startYear, int endYear, stationsADT stations
 
 static void addToMostPopular(pStation startStation, size_t endId, char * endStationName){
     startStation->mostPopularEndStations = realloc(startStation->mostPopularEndStations, (startStation->sizeOfMostPopular + 1) * sizeof(struct nameIdAndCounter));
+    if (startStation->mostPopularEndStations == NULL) {
+        perror(ERROR_ALLOCATION);
+        exit(EXIT_FAILURE);
+    }
     for(int i = 0; i<startStation->sizeOfMostPopular; i++){
         if(startStation->mostPopularEndStations[i].id == endId){
             startStation->mostPopularEndStations[i].counter += 1;
             return;
         }
-    }
-    
-    if(startStation->mostPopularEndStations == NULL){
-        printf(ERROR_ALLOCATION);
-        exit(EXIT_FAILURE);
     }
     startStation->mostPopularEndStations[startStation->sizeOfMostPopular].counter = 1;
     startStation->mostPopularEndStations[startStation->sizeOfMostPopular].name = endStationName;
@@ -346,7 +351,7 @@ void nextCount(stationsADT stations) {
 
 size_t getMembersCount(stationsADT stations){
     if (stations->iterCount == NULL){
-        fprintf(stderr, "No se inicio el iterador\n");
+        fprintf(stderr, ITER_NOT_ASSIGN_ERROR);
         exit(EXIT_FAILURE);
     }
     return stations->iterCount->amountRentalsByMembers;
@@ -354,7 +359,7 @@ size_t getMembersCount(stationsADT stations){
 
 size_t getCasualsCount(stationsADT stations){
     if (stations->iterCount == NULL){
-        fprintf(stderr, "No se inicio el iterador\n");
+        fprintf(stderr, ITER_NOT_ASSIGN_ERROR);
         exit(EXIT_FAILURE);
     }
     return stations->iterCount->amountRentalsByCasuals;
@@ -362,7 +367,7 @@ size_t getCasualsCount(stationsADT stations){
 
 size_t getTotalCount(stationsADT stations){
     if (stations->iterCount == NULL){
-        fprintf(stderr, "No se inicio el iterador\n");
+        fprintf(stderr, ITER_NOT_ASSIGN_ERROR);
         exit(EXIT_FAILURE);
     }
     return stations->iterCount->totalAmountRentals;
@@ -370,7 +375,7 @@ size_t getTotalCount(stationsADT stations){
 
 char * getStationNameCount(stationsADT stations){
     if (stations->iterCount == NULL){
-        fprintf(stderr, "No se inicio el iterador\n");
+        fprintf(stderr, ITER_NOT_ASSIGN_ERROR);
         exit(EXIT_FAILURE);
     }
     return stations->iterCount->stationName;
@@ -381,7 +386,7 @@ int hasRentsAlpha(stationsADT stations){
     fprintf(stderr, ERROR_ITER);
     exit(EXIT_FAILURE);
     }
-    return stations->iterAlpha->oldestRental!=NULL;//tambien se puede preguntar si total es 0
+    return stations->iterAlpha->oldestRental!=NULL;
 }
 
 char * getOldestRentalStationNameEndAlpha(stationsADT stations){
@@ -429,7 +434,7 @@ void nextAlpha(stationsADT stations){
 char * getStationNameAlpha(stationsADT stations){
     if (stations->iterAlpha == NULL)
     {
-        fprintf(stderr, "No se inicio el iterador\n");
+        fprintf(stderr, ITER_NOT_ASSIGN_ERROR);
         exit(EXIT_FAILURE);
     }
     return stations->iterAlpha->stationName;
@@ -457,9 +462,12 @@ static char * getMostPopularFromArrayAlpha(pStation station, size_t * amountOfTr
 
 char * getMostPopularFromStationAlpha(stationsADT stations, size_t * amountOfTrips){
     if(stations->iterAlpha == NULL){
-        printf("No se a inicializado el iterador\n");
+        printf(ITER_NOT_ASSIGN_ERROR);
         exit(EXIT_FAILURE);
     }
     char * toReturn = getMostPopularFromArrayAlpha(stations->iterAlpha,amountOfTrips);
+    if (toReturn==NULL){
+        return EMPTY_IDENTIFIER;
+    }
     return toReturn;
 }

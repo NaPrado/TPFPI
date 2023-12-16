@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define ERROR_ALLOCATION "Error alocando memoria\n"
+
 typedef struct node * pNode;
 
 struct node{
@@ -16,12 +18,24 @@ struct bstCDT {
 };
 
 bstADT newtree(void) {
-    return calloc(1,sizeof(struct bstCDT));
+    bstADT tree=calloc(1,sizeof(struct bstCDT));
+    if (tree==NULL)
+    {
+        perror(ERROR_ALLOCATION);
+        exit(EXIT_FAILURE);
+    }
+    
+    return tree;
 }
 
 static pNode addToTreeRec(pNode root, size_t id, void * elem){
     if (root == NULL){
         pNode aux =calloc(1,sizeof(struct node));
+        if (aux==NULL)
+        {
+        perror(ERROR_ALLOCATION);
+        exit(EXIT_FAILURE);
+        }
         aux->id=id;
         aux->elem=elem; 
         return aux;

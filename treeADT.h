@@ -18,7 +18,7 @@ Añadir una nueva hoja al arbol, esta contiene la id y su elemento asociado
 */
 void addToTree(bstADT bst, size_t id, void * elem);
 /* 
-busca una id en el arbol y si existe retorna su elemento asociado
+busca una id en el arbol y si existe retorna su elemento asociado, si no existe retorna NULL
 */
 void * existId(size_t id,bstADT tree);
 /*

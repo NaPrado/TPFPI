@@ -6,17 +6,12 @@
 #include "stationADT.h"
 #include "read.h"
 
-#define ESCAPE_N '\n'
-#define SEMICOLON ";"
-#define MEMBER 1
-#define CASUAL 0 
+
 #define YEAR_ALIGMENT 1900 
 #define MONTH_ALIGMENT 1 
-#define MAXCHARSPERLINE 200
-#define CHARSBLOCK 10
-#define MAXNAMELENGTH 20
-#define DATE_ELEMS 6
-#define DATE_DELIM "- :"
+#define MAX_CHARS_PER_LINE 200
+#define SET_ERRNO 0
+#define READ_TEXT "rt"
 
 
 
@@ -29,26 +24,6 @@ enum dateForm{
     secs,
     lastElemDates,
 };
-
-char* copyString(const char * origin) {
-    // Obtener la longitud de la cadena de origen
-    size_t length = strlen(origin);
-
-    // Asignar memoria dinámica para la cadena de destino
-    char *toReturn = (char*)malloc((length + 1) * sizeof(char));
-
-    // Verificar si la asignación de memoria fue exitosa
-    if (toReturn == NULL) {
-        perror("Error al asignar memoria");
-        exit(EXIT_FAILURE);
-    }
-
-    // Copiar la cadena de origen a la zona de memoria dinámica
-    strcpy(toReturn, origin);
-
-    // Devolver la dirección de la zona de memoria asignada
-    return toReturn;
-}
 
 //assigna la fecha en formato yyyy-MM-dd HH:mm:ss a un struct tm
 static struct tm saveDate(char * date){
@@ -79,28 +54,28 @@ static struct tm saveDate(char * date){
             }
         token = strtok(NULL, DATE_DELIM);
     }
-    moment.tm_isdst=-1;
+    moment.tm_isdst=DAYLIGHT_SAVING_TIME;
     return moment;
 }
 
 
 static void readCSVFileBikes(char const *argv[],stationsADT stations){
-    errno=0;
-    FILE * bikesFile = fopen( argv[1], "rt");
-    if(errno != 0 && bikesFile==NULL){
+    errno=SET_ERRNO;
+    FILE * bikesFile = fopen( argv[BIKES_FILE], READ_TEXT);
+    if(errno != SET_ERRNO && bikesFile==NULL){
         perror("Ocurrio un error mientrar se abria el archivo de viajes realizados\n");
         exit (EXIT_FAILURE);
     }
     
-    char s[MAXCHARSPERLINE];
+    char s[MAX_CHARS_PER_LINE];
     //libera la primer linea
-    fgets(s,MAXCHARSPERLINE,bikesFile);
-    while (fgets(s,MAXCHARSPERLINE, bikesFile)){
+    fgets(s,MAX_CHARS_PER_LINE,bikesFile);
+    while (fgets(s,MAX_CHARS_PER_LINE, bikesFile)){
         struct tm startDate;
         struct tm endDate;
         char * sDate,* eDate;
         int idStart, idEnd, isMember;
-        char * token=strtok(s,SEMICOLON);
+        char * token=strtok(s,DELIM);
         if (token!=NULL)
         {
             for (int q = 0; token!=NULL; q++){            
@@ -130,10 +105,12 @@ static void readCSVFileBikes(char const *argv[],stationsADT stations){
                         default:
                             break;
                 }
-                token = strtok(NULL, SEMICOLON);
+                token = strtok(NULL, DELIM);
             }
+            //se guarrdan las fechas en un struct tm
             startDate=saveDate(sDate);
             endDate=saveDate(eDate);
+            //se llama a la funcion que guarda datos de alquileres
             addRental(startDate,idStart,endDate,idEnd,isMember,stations);  
         }          
     }
@@ -141,25 +118,25 @@ static void readCSVFileBikes(char const *argv[],stationsADT stations){
 }
 
 void readCSVFileStation(char const * argv[],stationsADT stations){
-    if ((FORMATMON == 1 && FORMATNYC == 1)||(FORMATMON == 0 && FORMATNYC == 0))//si no se selecciona ninguna flag o si se selecconan ambas
+    //si no se selecciona ninguna flag o si se selecconan ambas, usando el makefile no deberia suceder
+    if ((FORMATMON == 1 && FORMATNYC == 1)||(FORMATMON == 0 && FORMATNYC == 0))
     {
         perror("Ocurrio un error en compilacion, se debe aclarar en el makefile el formato de que ciudad a usar\n");
         exit (EXIT_FAILURE);
     }
-    
-    errno = 0;
-    FILE * stationsFile = fopen( argv[2], "rt");
-    if(errno != 0 || stationsFile==NULL){
+    errno = SET_ERRNO;
+    FILE * stationsFile = fopen( argv[STATION_FILE], READ_TEXT);
+    if(errno != SET_ERRNO || stationsFile==NULL){
         perror("Ocurrio un error mientrar se abria el archivo de las estaciones\n");
         exit (EXIT_FAILURE);
     }
-    char s[MAXCHARSPERLINE];
+    char s[MAX_CHARS_PER_LINE];
     // Leer líneas desde el archivo
-    fgets(s,MAXCHARSPERLINE,stationsFile);
-    while (fgets(s,MAXCHARSPERLINE,stationsFile)){
+    fgets(s,MAX_CHARS_PER_LINE,stationsFile);
+    while (fgets(s,MAX_CHARS_PER_LINE,stationsFile)){
         int id;
         char * name;
-        char * token=strtok(s,SEMICOLON);
+        char * token=strtok(s,DELIM);
         for (int q = 0; token!=NULL ; q++) {
                 switch (q) {
                     case idStation:
@@ -173,9 +150,11 @@ void readCSVFileStation(char const * argv[],stationsADT stations){
                     default:
                         break;
                 }
-            token = strtok(NULL, SEMICOLON);  // Mueve la llamada a strtok fuera del switch
+            // Mueve la llamada a strtok fuera del switch
+            token = strtok(NULL, DELIM);  
         }
-        addStation(stations,name,id);
+        //se llama a la funcion que guarda datos de estaciones
+        addStation(stations,name,id); 
     }
     fclose(stationsFile);
     toBeginAlpha(stations);
