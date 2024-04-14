@@ -1,93 +1,89 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <ctype.h>
 #include <string.h>
 #include <strings.h>
-#include <errno.h>
-#include <math.h>
-#include "libreria HTML/htmlTable.h"  
-//#include <stdbool.h>
 #include "stationADT.h"
+#include "treeADT.h"
 
 
-
-#define BLOQUECHARS 10
 #define MEMBER 1
 #define CASUAL 0 
-#define DAYS_IN_WEEK 7
+#define NO_LIMITS 3
+#define NO_UPPER_LIMIT 4
+#define ALL_LIMITS 5
+#define WEEK_ALIGMENT 1
+#define MONTH_ALIGMENT 1
+#define YEAR_ALIGMENT 1900 
+#define YEAR_FLOOR_ARGUMENT 3
+#define YEAR_CEIL_ARGUMENT 4
 
-
+#define ERROR_ALLOCATION "Error alocando memoria\n"
+#define ARG_ERROR "Error en pasaje de argumentos para intervalo de años\n"
+#define WARNING_ARGS_MESSAGE "Advetencia, la cantidad de argumentos es mayor a la solicitada\n"
+#define ERROR_ITER "Uso invalido de iterador\n"
+#define ITER_NOT_ASSIGN_ERROR "No se ha inicializado el iterador\n"
 
 enum DAYS           
-{
-    saturday,     
-    sunday,     
-    monday,       
+{     
+    monday=0,       
     tuesday,
     wednesday,     
     thursday,
-    friday
+    friday,
+    saturday,     
+    sunday,
 } workday;
 
 
+struct nameIdAndCounter{
+    char * name;
+    size_t id;
+    size_t counter;
+};
 
-
-// el tipo de dato es el mismo tanto para stationsNYC como stationsMON, lo que cambia es como obtenemos esos datos;
-
-/* 
-    Info importante de cada archivo
-    Para bikes:
-        start_date;emplacement_pk_start;end_date;emplacement_pk_end;is_member
-        2021-09-20 06:31:28;348;2021-09-20 07:02:22;332;1
-    Para stations:
-        pk;name;latitude;longitude
-        327;Sanguinet / de Maisonneuve;45.513405;-73.562594
-*/
-
-// ---------------------------------IDEA-----------------------------------------
-// proponemos que el cdt contenga dos cosas primero dos listas de estaciones (alfabetico, cantidad viajes iniciados)
-// segundo un arbol de ids
-// esto con el proposito de que primero se cargan las informaciones de las estaciones existentes del archivo stations
-// a su vez se iran cargando en paralelo las ids existentes de cada estacion a un arbol binario de busqueda 
-// segundo se va copiar los viajes en el nodo de cada estacion si las estaciones de salida y llegada son validas (osea estan en el arbol)
+typedef struct nameIdAndCounter * pNameIdAndCounter;
 
 typedef struct rental * pRental ;
-struct rental //datos del archivo Bike se guardaran en formato de lista ordenada por stationIdStart 
+struct rental 
 {
-    struct tm * dateStart;
     char * stationNameEnd;
-    struct tm * dateEnd;
-    pRental tail;
+    struct tm dateStart;
+    struct tm dateEnd;
 };
 
-struct station //lista
+typedef struct station * pStation ;
+struct station 
 {
     char * stationName;
-    pRental oldestRental; //lista
-    size_t amountRentalsByMembers;  //contadores para q1
-    size_t amountRentalsByCasuals;  //contadores para q1
-    size_t totalAmountRentals;      //contadores para q1
-    struct station * tailAlpha;
-    struct station * tailCount;             //util para q1
+    struct nameIdAndCounter * mostPopularEndStations;
+    size_t sizeOfMostPopular;
+    pRental oldestRental;
+    size_t amountRentalsByMembers;
+    size_t amountRentalsByCasuals;
+    size_t totalAmountRentals;
+    pStation tailAlpha;
+    pStation tailCount;
 };
 
-struct stationCDT
+
+struct stationsCDT
 {
-    pStation firstAlpha;//lista estaciones orden alfabetico (puntero a primer nodo)
-    pStation firstCount;//lista oredenada segun cantidad de viajes iniciados en esa estacion
-};                              
-struct stationsIdNode{ //arbol binario de busqueda basado en cada id de estacion
-    size_t stationId;
-    pStation associatedStation;
-    struct stationsIdNode *  left;
-    struct stationsIdNode * right;
+    size_t startedTrips[DAYS_IN_WEEK];
+    size_t endedTrips[DAYS_IN_WEEK];
+    pStation firstAlpha;
+    pStation firstCount;
+    pStation iterAlpha;
+    pStation iterCount;
+    bstADT tree;
+    int floorYear;
+    int ceilingYear; //de ser igual a INDICATOR_HAS_NO_UPPER_LIMIT significa q no hay limite superior
 };
 
-struct bst {
-	stationsIdBST root;	    // raíz del arbol
-};
+#define IS_WITHIN_INTERVAL(x,y,z) (((z) == INDICATOR_HAS_NO_UPPER_LIMIT) && ((y)==INDICATOR_HAS_NO_LOWER_LIMIT))?1:((z) == INDICATOR_HAS_NO_UPPER_LIMIT)? ((x)>=(y)):(((x)>=(y)) && (x)<=(z))
 
-char* copyString(const char * origin) {
+static char* copyString(const char * origin) {
     // Obtener la longitud de la cadena de origen
     size_t length = strlen(origin);
 
@@ -96,7 +92,7 @@ char* copyString(const char * origin) {
 
     // Verificar si la asignación de memoria fue exitosa
     if (toReturn == NULL) {
-        perror("Error al asignar memoria");
+        perror(ERROR_ALLOCATION);
         exit(EXIT_FAILURE);
     }
 
@@ -107,330 +103,380 @@ char* copyString(const char * origin) {
     return toReturn;
 }
 
-bst newtree(void) {
-    return calloc(1,sizeof(struct bst));
+static int isValidInterval(int floor, int ceil){
+    return (floor >= 0 && ceil >= 0 && floor <= ceil);
 }
 
-stationADT newStation(void){
-    stationADT new = calloc(1,sizeof(struct stationCDT));
+static int strIsNumber(const char *string){
+    int i=0;
+    while (*(string+i)){
+        if (!isdigit(*(string+i))){
+            return 0;
+        }
+        i++;
+    }
+    return 1;
+}
+
+static int strToInt(const char *string, int *num) {
+    if(strIsNumber(string)){
+        *num=atoi(string);
+        return 1;
+    }
+    else{
+        return 0;
+    }
+}
+
+static void yearValidator(int argc, const char * argv[], int * floorYear, int * ceilYear){
+    if (argc == NO_LIMITS){ //no me pasan años
+        *floorYear=INDICATOR_HAS_NO_LOWER_LIMIT;
+        *ceilYear=INDICATOR_HAS_NO_UPPER_LIMIT;
+        return;
+    }
+    else if(argc == NO_UPPER_LIMIT){ //se recibe un año entonces asumo q es el piso
+        if(strToInt(argv[YEAR_FLOOR_ARGUMENT],floorYear) && *floorYear>=0){
+            *ceilYear = INDICATOR_HAS_NO_UPPER_LIMIT;
+            return;
+        }
+        else{
+            printf(ARG_ERROR);
+            exit(EXIT_FAILURE);
+        }
+    }
+    else if(argc == ALL_LIMITS){ //se reciben ambos años
+        if(strToInt(argv[YEAR_FLOOR_ARGUMENT],floorYear) && strToInt(argv[YEAR_CEIL_ARGUMENT],ceilYear) && isValidInterval(*floorYear,*ceilYear)){
+            return;
+        }
+        else{
+            printf(ARG_ERROR);
+            exit(EXIT_FAILURE);
+        }
+    }
+    else if (argc > ALL_LIMITS && WARNING_FLAG){
+        printf(WARNING_ARGS_MESSAGE);
+        return;
+    }
+    else{
+        printf(ARG_ERROR);
+        exit(EXIT_FAILURE);
+    }
+}
+
+stationsADT newStationsGroup(int argc, const char * argv[]){
+    int ceilingYear,floorYear;
+    yearValidator(argc,argv,&floorYear,&ceilingYear);
+    stationsADT new = calloc(1,sizeof(struct stationsCDT));
+    if (new == NULL) {
+        perror(ERROR_ALLOCATION);
+        exit(EXIT_FAILURE);
+    }
+    new->tree=newtree();
+    new->ceilingYear = ceilingYear;
+    new->floorYear = floorYear;
     return new;
 }
 
-
-
-
-static stationsIdBST addToTreeRec(stationsIdBST root, size_t id, struct station * associatedStation){
-    if (root == NULL){
-        stationsIdBST aux =calloc(1,sizeof(struct stationsIdNode));
-        aux->stationId=id;
-        aux->associatedStation=associatedStation;
-        return aux;
-    }
-    int c=(root->stationId - id);
-    if (c < 0)
-    {
-        root->right=addToTreeRec(root->right,id,associatedStation);
-    }
-    else if (c>0)
-    {
-        root->left =addToTreeRec(root->left,id,associatedStation);
-    }
-    return root;
-}
-
-static void addToTree(bst bst, size_t id, struct station * associatedStation){
-    bst->root = addToTreeRec(bst->root,id,associatedStation);
-    return;
-}
-
-static pStation addStationRec(pStation alphaList,char * stationName, bst rootbst, size_t stationId){
-    if(alphaList == NULL || strcasecmp(alphaList->stationName,stationName) < 0){//si llegue al final o era vacia o tengo que añadir añado
+static pStation addStationRec(pStation alphaList,char * stationName, bstADT tree, size_t stationId){
+    int c;
+    if(alphaList == NULL ||  (c=strcasecmp(alphaList->stationName, stationName)) > 0){
         //incorporacion a la lista
         pStation newNode = calloc(1,sizeof(struct station));
-        newNode->stationName = stationName; //ver si anda.
+        if(newNode == NULL){
+            printf(ERROR_ALLOCATION);
+            exit(EXIT_FAILURE);
+        }
+        newNode->stationName = copyString(stationName);
         newNode->tailAlpha = alphaList;
         //incorporacion a el BST
-        addToTree(rootbst,stationId,newNode);
+        addToTree(tree,stationId,newNode);
         return newNode;
     }
-    if(strcasecmp(alphaList->stationName,stationName) == 0){
-        //ya estaba???
-        return alphaList;
+    if(c<0){
+        alphaList->tailAlpha = addStationRec(alphaList->tailAlpha,stationName,tree,stationId);
     }
-    alphaList->tailAlpha = addStationRec(alphaList->tailAlpha, stationName, rootbst, stationId);
     return alphaList;
 }
 
-void addStation(stationADT station,char * stationName, bst rootbst, size_t stationId){
-    char * name =copyString(stationName);
-    station->firstAlpha=addStationRec(station->firstAlpha,name,rootbst,stationId);
+void addStation(stationsADT stations,char * stationName, size_t stationId){
+    stations->firstAlpha = addStationRec(stations->firstAlpha,stationName,stations->tree,stationId);
     return;
 }
 
-static char isValidIdRec(size_t id, stationsIdBST root, pStation * correctStation){
-    if(root == NULL){
-        return 0;
+static int getWeekDay(int day,int month,int year){
+    int weekday  = (day += month < 3 ? year-- : year - 2, 23*month/9 + day + 4 + year/4- year/100 + year/400)%7;
+    if (weekday==0){
+        return sunday;
     }
     else{
-        if(root->stationId == id){
-            *correctStation = root->associatedStation;
-            return 1;
-        }
-        else{
-            if(id < root->stationId){
-                return isValidIdRec(id,root->left, correctStation);
-            }
-            else{
-                return isValidIdRec(id,root->right, correctStation);
-            }
-        }
+        return weekday-WEEK_ALIGMENT;
     }
 }
 
-static char isValidId(size_t id, bst root, pStation * correctStation){
-    return isValidIdRec(id,root->root,correctStation);
+static void countTrips(stationsADT stations,struct tm startDate,struct tm endDate){
+    stations->startedTrips[getWeekDay(startDate.tm_mday,startDate.tm_mon+MONTH_ALIGMENT,startDate.tm_year+YEAR_ALIGMENT)]++;
+    stations->endedTrips[getWeekDay(endDate.tm_mday,endDate.tm_mon+MONTH_ALIGMENT,endDate.tm_year+YEAR_ALIGMENT)]++;
+    return;
 }
 
-static char isValidRental(size_t startStationId, size_t endStationId, bst idBst, pStation * startStation, pStation * endStation){
-    return (isValidId(startStationId, idBst, startStation) && isValidId(endStationId, idBst, endStation));;
+static int isWithinYearInterval(int startYear, int endYear, stationsADT stations){
+    return (IS_WITHIN_INTERVAL(startYear,stations->floorYear,stations->ceilingYear) && IS_WITHIN_INTERVAL(endYear,stations->floorYear,stations->ceilingYear));
 }
 
-static pRental addRentalRec(pRental rentalList, struct tm * startDate, struct tm * endDate, char * endStationName){
-    double cmp;
-    if(rentalList == NULL || (cmp = difftime(mktime(startDate),mktime(rentalList->dateStart))) < 0){
-        pRental newRental = malloc(sizeof(struct rental));
-        newRental->dateEnd=endDate;
-        newRental->dateStart=startDate;
-        newRental->stationNameEnd=endStationName;
-        newRental->tail=rentalList;
-        return newRental;
+static void addToMostPopular(pStation startStation, size_t endId, char * endStationName){
+    startStation->mostPopularEndStations = realloc(startStation->mostPopularEndStations, (startStation->sizeOfMostPopular + 1) * sizeof(struct nameIdAndCounter));
+    if (startStation->mostPopularEndStations == NULL) {
+        perror(ERROR_ALLOCATION);
+        exit(EXIT_FAILURE);
     }
-    rentalList->tail = addRentalRec(rentalList->tail, startDate, endDate, endStationName);
-    return rentalList;
+    for(int i = 0; i<startStation->sizeOfMostPopular; i++){
+        if(startStation->mostPopularEndStations[i].id == endId){
+            startStation->mostPopularEndStations[i].counter ++;
+            return;
+        }
+    }
+    startStation->mostPopularEndStations[startStation->sizeOfMostPopular].counter = 1;
+    startStation->mostPopularEndStations[startStation->sizeOfMostPopular].name = endStationName;
+    startStation->mostPopularEndStations[startStation->sizeOfMostPopular].id = endId;
+    startStation->sizeOfMostPopular++;
 }
 
-void addRental(bst idBST, struct tm * startDate,size_t startId,struct tm * endDate, size_t endId, char association){
-    pStation startStation, endStation;
-    if(!isValidRental(startId, endId, idBST, &startStation, &endStation)){
+void addRental(struct tm startDate,size_t startId,struct tm endDate, size_t endId, char association, stationsADT stations){
+    pStation startStation,endStation;
+    if ((startStation = existId(startId,stations->tree)) == NULL||(endStation = existId(endId,stations->tree)) == NULL){
         return;
     }
-    startStation->totalAmountRentals += 1;
-    char * endStationName = endStation->stationName; //ver si anda (quilombitos de strings)
-    startStation->oldestRental = addRentalRec(startStation->oldestRental, startDate, endDate, endStationName);
+    
+    countTrips(stations,startDate,endDate);
+    startStation->totalAmountRentals ++;
     if(association == MEMBER){
-        startStation->amountRentalsByMembers += 1;
+        startStation->amountRentalsByMembers ++;
     }
     if(association == CASUAL){
-        startStation->amountRentalsByCasuals += 1;
+        startStation->amountRentalsByCasuals ++;
+    }
+    if (startId != endId){
+        if (startStation->oldestRental == NULL || difftime(mktime(&startDate),mktime(&(startStation->oldestRental->dateStart))) < 0 ){
+            pRental newRental=calloc(1,sizeof(struct rental));
+            if(newRental == NULL){
+                printf(ERROR_ALLOCATION);
+                exit(EXIT_FAILURE); 
+            }
+            newRental->dateEnd=endDate;
+            newRental->dateStart=startDate;
+            newRental->stationNameEnd=endStation->stationName;
+            free(startStation->oldestRental);
+            startStation->oldestRental=newRental;
+        }
+        if(isWithinYearInterval(startDate.tm_year+YEAR_ALIGMENT,endDate.tm_year+YEAR_ALIGMENT, stations)){
+            addToMostPopular(startStation, endId, endStation->stationName);
+        } 
     }
 }
 
-void freeTreeRec(stationsIdBST root){
-    if(root == NULL){
+static void freeRentals(pStation stations){
+    if (stations == NULL || stations->oldestRental == NULL){
         return;
     }
-    freeTreeRec(root->left);
-    freeTreeRec(root->right);
-    free(root);
-}
-
-void freeTree(bst root){
-    freeTreeRec(root->root);
-    free(root);
-}   
-
-static void freeRentals(pRental rentalList){
-    if(rentalList == NULL){
-        return;
-    }
-    free(rentalList->dateEnd);
-    free(rentalList->dateStart);
-//    free(rentalList->stationNameEnd);
-    freeRentals(rentalList->tail);
-    free(rentalList);
-    return;
+    free(stations->oldestRental);
 }
 
 static void freeStations(pStation stationList){
     if(stationList == NULL){
         return;
     }
-    freeStations(stationList->tailAlpha);
     free(stationList->stationName);
-    freeRentals(stationList->oldestRental);
+    freeRentals(stationList);
+    freeStations(stationList->tailAlpha);
+    if(stationList->mostPopularEndStations != NULL){
+        free(stationList->mostPopularEndStations);
+    }
     free(stationList);
     return;
 }
 
-void freeAssets(stationADT stations){
-    //lista de cosas a liberar: el adt,cada estacion,cada rental,cada nombre
+void freeAssets(stationsADT stations){
+    freeTree(stations->tree);
     freeStations(stations->firstAlpha);
     free(stations);
 }
 
-/* int main(int argc, char const *argv[])
-{
-    time_t t=time(NULL);
-    stationADT newStation;
-    newStation=calloc(1,sizeof(stationADT));
-    inicializerBikesMONFormat(argv,newStation);
-    free(newStation);
-    printf("%ld\n",time(NULL)-t);
-    return 0;
-}
-int main(int argc, char const *argv[])
-{
-    time_t t=time(NULL);
-    //stationADT newStation;
-    //newStation=calloc(1,sizeof(stationADT));
-    inicializerBikesMONFormat(argv,newStation);
-    //free(newStation);
-    printf("%ld\n",time(NULL)-t);
-    return 0;
-}
- */
-
-static pStation link(pStation station,pStation listCount){
-    if(listCount->tailCount == NULL || station->totalAmountRentals <= listCount->totalAmountRentals){
-        station->tailCount = listCount;
-        listCount->tailCount = station;
-        return listCount;
+// Función para obtener el puntero al nodo con mayor cantidad de viajes
+static pStation getNodeWithMaxRentals(pStation stations) {
+    pStation maxNode = NULL;
+    while (stations != NULL) {
+        if (maxNode == NULL || stations->totalAmountRentals > maxNode->totalAmountRentals) {
+            maxNode = stations;
+        }
+        stations = stations->tailAlpha;
     }
-    listCount->tailCount = link(station,listCount->tailCount);
+    return maxNode;
+}
+
+static pStation linkCount(pStation listAlpha,pStation listCount){
+    int c;
+    if(listCount == NULL || (c = listAlpha->totalAmountRentals - listCount->totalAmountRentals) > 0){
+        listAlpha->tailCount = listCount;
+        return listAlpha;
+    }
+    if(c<=0){
+        listCount->tailCount = linkCount(listAlpha,listCount->tailCount);
+    }
     return listCount;
 }
 
-void orderByCount(stationADT stations){
+static void orderByCount(stationsADT stations){
     pStation aux = stations->firstAlpha;
     while (aux != NULL){
-        stations->firstCount = link(aux,stations->firstCount);
+        stations->firstCount = linkCount(aux,stations->firstCount);
         aux = aux->tailAlpha;
     }
     return;
 }
 
-static void writeQ1Rec(pStation stations, htmlTable tablaQ1, FILE * csvQ1){
-    if (stations==NULL)
-        return;
-    addHTMLRow(tablaQ1,stations->stationName,stations->amountRentalsByMembers,stations->amountRentalsByCasuals,stations->totalAmountRentals);
-    fprintf(csvQ1,"%s;%ld;%ld;%ld\n",stations->stationName,stations->amountRentalsByMembers,stations->amountRentalsByCasuals,stations->totalAmountRentals);
-    writeQ1Rec(stations->tailCount,tablaQ1,csvQ1);
-    return;
-}
-
-static void writeQ1(stationADT stations){
-    errno = 0;
-    FILE * csvQ1 = fopen("query1.csv","wt");
-    if(errno != 0 || csvQ1==NULL){
-        perror("Ocurrio un error mientrar se creaba el archivo \"query1.csv\" \n");
-        exit (1);
-    }
-    fprintf(csvQ1,"bikeStation;memberTrips;casualTrips;allTrips\n");
-    htmlTable tablaQ1 = newTable("query1.html",4,"bikeStation","memberTrips","casualTrips","allTrips");
-    writeQ1Rec(stations->firstCount,tablaQ1,csvQ1);//funcion recursva o iterativa que carga tanto html como csv
-    closeHTMLTable(tablaQ1);
-    fclose(csvQ1);
-}
-
-void query1(stationADT stations){
-    orderByCount(stations);
-    writeQ1(stations);//carga tanto html como csv
-}
-
-static pRental checkIfCircular(pRental rent, char * currentStationName){
-    if (strcmp(currentStationName,rent->stationNameEnd)==0){
-        return rent;
-    }
-    return checkIfCircular(rent->tail,currentStationName);
-}
-
-static void writeQ2Rec(pStation stations, htmlTable tablaQ2, FILE * csvQ2){
-    if (stations==NULL)
-        return;
-    pRental rent = checkIfCircular(stations->oldestRental,stations->stationName);
-    char * s=NULL;
-    sprintf(s,"%d/%d/%d %d:%d",rent->dateStart->tm_mday,rent->dateStart->tm_mon,rent->dateStart->tm_year,
-    rent->dateStart->tm_hour,rent->dateStart->tm_min);
-    addHTMLRow(tablaQ2,stations->stationName,rent->stationNameEnd,s);
-    fprintf(csvQ2,"%s;%s;%d/%d/%d %d:%d\n",
-    stations->stationName,
-    rent->stationNameEnd,
-    rent->dateStart->tm_mday,rent->dateStart->tm_mon,rent->dateStart->tm_year,
-    rent->dateStart->tm_hour,rent->dateStart->tm_min);
-    writeQ2Rec(stations->tailAlpha,tablaQ2,csvQ2);
-    return;
-}
-//DD/MM/YYYY HH:mm
-void query2(struct stationCDT * stations){
-    errno = 0;
-    FILE * csvQ2 = fopen("query2.csv","wt");
-    if(errno != 0 || csvQ2==NULL){
-        perror("Ocurrio un error mientrar se creaba el archivo \"query1.csv\" \n");
-        exit (1);
-    }
-    fputs("bikeStation;bikeEndStation;oldestDateTime\n",csvQ2);
-    htmlTable tablaQ2 = newTable("query2.html",3,"bikeStation","bikeEndStation","oldestDateTime");
-    writeQ2Rec(stations->firstAlpha,tablaQ2,csvQ2);//funcion recursva o iterativa que carga tanto html como csv
-    closeHTMLTable(tablaQ2);
-    fclose(csvQ2);
-}
-
-static int dayOfWeek(int day, int month, int year){
-    if (month < 3) {
-        month += 12;
-        year--;
-    }
-    int yearInCentury = year % 100;
-    int century = year / 100 ;
-    int h = ( day + (13 * ( month + 1 )) / 5 + yearInCentury + yearInCentury / 4 + century / 4 - 2 * century ) % 7;
-    return h;
-}
-
-static void countTrips(pRental rentalList, size_t * startedTrips, size_t * endedTrips){
-    while(rentalList != NULL){
-        startedTrips[dayOfWeek(rentalList->dateStart->tm_mday,rentalList->dateStart->tm_mon+1,rentalList->dateStart->tm_year+1900)]+=1;
-        endedTrips[dayOfWeek(rentalList->dateEnd->tm_mday,rentalList->dateEnd->tm_mon+1,rentalList->dateEnd->tm_year+1900)]+=1;
-        rentalList=rentalList->tail;
-    }
-    return;
-}
-
-static void writeQ3(size_t * startedTrips, size_t * endedTrips){
-    char * weekDays[]={"Saturday","Sunday","Monday","Tuesday","Wednesday","Thursday","Friday"};
-    errno = 0;
-    FILE * csvQ3 = fopen("query3.csv","wt");
-    if(errno != 0 || csvQ3==NULL){
-        perror("Ocurrio un error mientrar se creaba el archivo \"query1.csv\" \n");
-        exit (1);
-    }
-    fputs("weekDay;startedTrips;endedTrips\n",csvQ3);
-    htmlTable tablaQ3 = newTable("query3.html",3,"weekDay","startedTrips","endedTrips");
-    for (size_t i = monday, j=i; i < DAYS_IN_WEEK+monday; i++)
+void toBeginCount(stationsADT stations){
+    if (stations->iterCount==NULL)
     {
-        if (i%friday==0)
-        {
-            j=saturday;
-        }
-        else{
-            j++;
-        }
-        fscanf(csvQ3,"%s;%lu;%lu\n",*(weekDays+j),startedTrips+j,endedTrips+j);
-        char * sT=NULL, * eT=NULL;
-        sprintf(sT,"%ld",startedTrips[j]);
-        sprintf(eT,"%ld",endedTrips[j]);
-        addHTMLRow(tablaQ3,*(weekDays+j),sT,eT);
+        orderByCount(stations);
     }
-    closeHTMLTable(tablaQ3);
-    fclose(csvQ3);
+    stations->iterCount=getNodeWithMaxRentals(stations->firstAlpha);
+    return;
 }
 
-void query3(stationADT stations){
-    size_t startedTrips[DAYS_IN_WEEK];
-    size_t endedTrips[DAYS_IN_WEEK];
-    pStation aux = stations->firstCount;
-    while(aux != NULL && aux->totalAmountRentals != 0){
-        countTrips(aux->oldestRental, startedTrips, endedTrips);
-        aux=aux->tailCount;
+int hasNextCount(stationsADT stations){
+    return (stations->iterCount!=NULL);
+}
+
+void nextCount(stationsADT stations) {
+  if (!hasNextCount(stations)) {
+    fprintf(stderr, ERROR_ITER);
+    exit(EXIT_FAILURE);
+  }
+  stations->iterCount=stations->iterCount->tailCount;
+  return;
+}
+
+size_t getMembersCount(stationsADT stations){
+    if (stations->iterCount == NULL){
+        fprintf(stderr, ITER_NOT_ASSIGN_ERROR);
+        exit(EXIT_FAILURE);
     }
-    writeQ3(startedTrips,endedTrips);
+    return stations->iterCount->amountRentalsByMembers;
+}
+
+size_t getCasualsCount(stationsADT stations){
+    if (stations->iterCount == NULL){
+        fprintf(stderr, ITER_NOT_ASSIGN_ERROR);
+        exit(EXIT_FAILURE);
+    }
+    return stations->iterCount->amountRentalsByCasuals;
+}
+
+size_t getTotalCount(stationsADT stations){
+    if (stations->iterCount == NULL){
+        fprintf(stderr, ITER_NOT_ASSIGN_ERROR);
+        exit(EXIT_FAILURE);
+    }
+    return stations->iterCount->totalAmountRentals;
+}
+
+char * getStationNameCount(stationsADT stations){
+    if (stations->iterCount == NULL){
+        fprintf(stderr, ITER_NOT_ASSIGN_ERROR);
+        exit(EXIT_FAILURE);
+    }
+    return stations->iterCount->stationName;
+}
+
+int hasRentsAlpha(stationsADT stations){
+    if (!hasNextAlpha(stations)){
+    fprintf(stderr, ERROR_ITER);
+    exit(EXIT_FAILURE);
+    }
+    return stations->iterAlpha->oldestRental!=NULL;
+}
+
+char * getOldestRentalStationNameEndAlpha(stationsADT stations){
+    if (!hasNextAlpha(stations)) {
+    fprintf(stderr, ERROR_ITER);
+    exit(EXIT_FAILURE);
+    }
+    return stations->iterAlpha->oldestRental->stationNameEnd;
+}
+
+struct tm getOldestRentalStartDateAlpha(stationsADT stations){
+    if (!hasNextAlpha(stations)) {
+    fprintf(stderr, ERROR_ITER);
+    exit(EXIT_FAILURE);
+    }
+    return stations->iterAlpha->oldestRental->dateStart;   
+}
+
+size_t * getStartedTrips(stationsADT stations){
+    return stations->startedTrips;
+}
+
+size_t * getEndedTrips(stationsADT stations){
+    return stations->endedTrips;
+}
+
+void toBeginAlpha(stationsADT stations){
+    stations->iterAlpha=stations->firstAlpha;
+    return;
+}
+
+int hasNextAlpha(stationsADT stations){
+    return (stations->iterAlpha != NULL);
+}
+
+void nextAlpha(stationsADT stations){
+  if ( !hasNextAlpha(stations)) {
+    fprintf(stderr, ERROR_ITER);
+    exit(EXIT_FAILURE);
+  } 
+  stations->iterAlpha=stations->iterAlpha->tailAlpha;
+  return;
+}
+
+char * getStationNameAlpha(stationsADT stations){
+    if (stations->iterAlpha == NULL)
+    {
+        fprintf(stderr, ITER_NOT_ASSIGN_ERROR);
+        exit(EXIT_FAILURE);
+    }
+    return stations->iterAlpha->stationName;
+}
+
+static int compareNameAndCount(const void * elem1,const void * elem2){
+    int c;
+    pNameIdAndCounter elemA = (pNameIdAndCounter)elem1;
+    pNameIdAndCounter elemB = (pNameIdAndCounter)elem2;
+    if((c = elemB->counter - elemA->counter) != 0){
+        return c;
+    }
+
+    return strcasecmp(elemA->name,elemB->name);
+}
+
+static char * getMostPopularFromArrayAlpha(pStation station, size_t * amountOfTrips){
+    qsort(station->mostPopularEndStations, station->sizeOfMostPopular, sizeof(*(station->mostPopularEndStations)),compareNameAndCount);
+    if (station->mostPopularEndStations != NULL){
+        *amountOfTrips = station->mostPopularEndStations->counter;
+        return station->mostPopularEndStations->name;
+    }
+    *amountOfTrips=0;
+    return NULL;
+    
+}
+
+char * getMostPopularFromStationAlpha(stationsADT stations, size_t * amountOfTrips){
+    if(stations->iterAlpha == NULL){
+        printf(ITER_NOT_ASSIGN_ERROR);
+        exit(EXIT_FAILURE);
+    }
+    char * toReturn = getMostPopularFromArrayAlpha(stations->iterAlpha,amountOfTrips);
+    if (toReturn==NULL){
+        return EMPTY_IDENTIFIER;
+    }
+    return toReturn;
 }
