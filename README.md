@@ -1,12 +1,16 @@
 # TPFPI
-Trabajo Practico Final de Programacion Imperativa 
+
+Trabajo Practico Final de Programacion Imperativa
+
 Autores: Nahuel Ignacio Prado y Matias Cuneo Gima
+
 Alumnos del Instituto Tecnologico de Buenos Aires (ITBA)
 
 ## Archivos
 
 ### bikeSharing.c:
 Lee, analiza y procesa los datos proporcionados realizando las querys 1, 2, 3 y 4.
+[Detalles de que hacen las querys y del TPE](https://docs.google.com/document/d/1LTNm3WkqFZPZn0jxswiWxzXlPTuNyuPw78affWahElA/edit)
 
 ## Librerías:
 
@@ -53,7 +57,8 @@ Finalmente para ejecutar cada programa debe se pasar como minimo dos parámetros
 #### Comando para Nueva York:
 ```sh
     ./bikeSharingNYC alquileresNYC.csv estacionesNYC.csv [OPTION]AñoInicio [OPTION]AñoFin
-``` 
+```
+[Archivos de prueba](https://drive.google.com/drive/folders/1Zi0xwIu-nfPpg4JyJhhVwKIeQvHEKqzY?usp=sharing)
 
 #### Advertencia: 
 
