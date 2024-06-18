@@ -38,20 +38,20 @@ Para compilar lo unico que hay que hacer es ejecutar el comando make y se genera
 bikeSharingMON y bikeSharingNYC Cada uno corresponde con una ciudad, como se indica en su nombre.
 
 ```sh    
-#Dentro del directorio del proyecto
-make
+    #Dentro del directorio del proyecto
+    make
 ```
 
 ## Ejecución
 
 Finalmente para ejecutar cada programa debe se pasar como minimo dos parámetros, el primero es un archivo .csv con los datos que contengan los alquileres, el segundo contiene los datos sobre las estaciones. Las funciones de lectura esperan que se pasen los parametros con los formatos acordes y que se utilizen los archivos con formato correspondiente. Ademas la cuarta query puede o no recibir un tercer y cuarto parametro el cual debe ser un año. Si se ingresa solo el tercer parametro este indicara una fecha de inicio a tener en cuenta para la cuarta query. Mientras que si se ingresa el cuarto paramentro este indicara una fecha de tope, de esta forma se genera un rango de años validos para la query cuatro.
 
+####Comando para Montreal:
 ```sh
-    #Comando para Montreal
     ./bikeSharingMON alquileresMON.csv estacionesMON.csv [OPTION]AñoInicio [OPTION]AñoFin
 ```
+####Comando para Nueva York:
 ```sh
-    #Comando para Nueva York
     ./bikeSharingNYC alquileresNYC.csv estacionesNYC.csv [OPTION]AñoInicio [OPTION]AñoFin
 ``` 
 
